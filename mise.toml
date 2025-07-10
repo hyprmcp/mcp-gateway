@@ -1,0 +1,12 @@
+[tools]
+go = "1.24"
+golangci-lint = "2"
+
+[tasks.tidy]
+run = "go mod tidy"
+
+[tasks.lint]
+run = "golangci-lint run"
+
+[tasks.serve]
+run = "go run . --config examples/config.yaml"

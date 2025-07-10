@@ -1,0 +1,6 @@
+authorizationServers:
+  - http://localhost:5556/
+proxy:
+  - path: /weather/mcp
+    http:
+      url: http://localhost:8000/mcp
