@@ -22,7 +22,7 @@ type ServeOptions struct {
 
 func BindServeOptions(cmd *cobra.Command, opts *ServeOptions) {
 	cmd.Flags().StringVarP(&opts.Config, "config", "c", "config.yaml", "Path to the configuration file")
-	cmd.Flags().StringVarP(&opts.Addr, "addr", "a", ":8080", "Address to listen on")
+	cmd.Flags().StringVarP(&opts.Addr, "addr", "a", ":9000", "Address to listen on")
 }
 
 func runServe(ctx context.Context, opts ServeOptions) error {

@@ -24,8 +24,10 @@ func NewProtectedResourceHandler(authorizationServers []string) http.Handler {
 			w.Header().Set("Content-Type", "application/json")
 
 			response := response{
-				Resource:             "http://" + r.Host + "/",
-				AuthorizationServers: authorizationServers, // replace with []string{"http://" + r.Host + "/"} to use built-in server for metadata
+				Resource: "http://" + r.Host + "/",
+				// use []string{"http://" + r.Host + "/"} to use built-in server for metadata
+				// use authorizationServers to use external server
+				AuthorizationServers: []string{"http://" + r.Host + "/"},
 			}
 
 			log.Get(r.Context()).Info("Protected resource metadata", "response", response)
