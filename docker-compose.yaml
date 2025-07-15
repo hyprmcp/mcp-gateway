@@ -8,6 +8,7 @@ services:
     command: ["dex", "serve", "/config.yaml"]
     ports:
       - 5556:5556
+      - 5557:5557
     configs:
       - source: config.yaml
         target: /config.yaml
@@ -27,8 +28,12 @@ configs:
       web:
         http: 0.0.0.0:5556
         allowedOrigins: ['*']
+      grpc:
+        addr: 0.0.0.0:5557
       storage:
         type: sqlite3
+      oauth2:
+        skipApprovalScreen: true
       staticClients:
         - id: ui
           name: 'Jetski Development'

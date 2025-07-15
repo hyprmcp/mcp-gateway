@@ -1,5 +1,11 @@
-authorizationServers:
-  - http://localhost:5556/
+host: http://localhost:9000/
+authorization:
+  servers:
+    - http://localhost:5556/
+  serverMetadataProxyEnabled: true
+  dynamicClientRegistrationEnabled: true
+dexGRPCClient:
+  addr: localhost:5557
 proxy:
   - path: /weather/mcp
     http:

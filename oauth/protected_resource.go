@@ -4,30 +4,33 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/jetski-sh/mcp-proxy/config"
 	"github.com/jetski-sh/mcp-proxy/log"
 )
 
 const ProtectedResourcePath = "/.well-known/oauth-protected-resource"
 
+type ProtectedResourceMetadata struct {
+	Resource             string   `json:"resource"`
+	AuthorizationServers []string `json:"authorization_servers"`
+}
+
 // NewWellKnownHandler implement the OAuth 2.0 Protected Resource Metadata (RFC9728) specification to indicate the
 // locations of authorization servers.
 //
 // Should be used to create a handler for the /.well-known/oauth-protected-resource endpoint.
-func NewProtectedResourceHandler(authorizationServers []string) http.Handler {
-	type response struct {
-		Resource             string   `json:"resource"`
-		AuthorizationServers []string `json:"authorization_servers"`
-	}
+func NewProtectedResourceHandler(config *config.Config) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			w.Header().Set("Content-Type", "application/json")
 
-			response := response{
-				Resource: "http://" + r.Host + "/",
-				// use []string{"http://" + r.Host + "/"} to use built-in server for metadata
-				// use authorizationServers to use external server
-				AuthorizationServers: []string{"http://" + r.Host + "/"},
+			response := ProtectedResourceMetadata{Resource: config.Host.String()}
+
+			if config.Authorization.ServerMetadataProxyEnabled {
+				response.AuthorizationServers = []string{config.Host.String()}
+			} else {
+				response.AuthorizationServers = config.Authorization.Servers
 			}
 
 			log.Get(r.Context()).Info("Protected resource metadata", "response", response)

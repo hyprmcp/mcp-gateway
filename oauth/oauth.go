@@ -5,20 +5,34 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/jetski-sh/mcp-proxy/config"
 )
 
-func NewOAuthMiddleware(authorizationServers []string) func(http.Handler) http.Handler {
+func NewOAuthMiddleware(config *config.Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		mux := http.NewServeMux()
+
 		mux.Handle(
 			ProtectedResourcePath,
-			NewProtectedResourceHandler(authorizationServers),
+			NewProtectedResourceHandler(config),
 		)
-		mux.Handle(
-			AuthorizationServerMetadataPath,
-			NewAuthorizationServerMetadataHandler(authorizationServers[0]),
-		)
-		mux.Handle("/{asd}/mcp", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if config.Authorization.ServerMetadataProxyEnabled {
+			mux.Handle(
+				AuthorizationServerMetadataPath,
+				NewAuthorizationServerMetadataHandler(config),
+			)
+		}
+
+		if config.Authorization.DynamicClientRegistrationEnabled {
+			mux.Handle(
+				DynamicClientRegistrationPath,
+				NewDynamicClientRegistrationHandler(config),
+			)
+		}
+
+		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 			if token == "" {
 				metadataURL, _ := url.Parse(r.URL.String())
@@ -32,6 +46,7 @@ func NewOAuthMiddleware(authorizationServers []string) func(http.Handler) http.H
 				next.ServeHTTP(w, r)
 			}
 		}))
+
 		return mux
 	}
 }
