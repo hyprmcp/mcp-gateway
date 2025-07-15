@@ -20,7 +20,6 @@ type ProtectedResourceMetadata struct {
 //
 // Should be used to create a handler for the /.well-known/oauth-protected-resource endpoint.
 func NewProtectedResourceHandler(config *config.Config) http.Handler {
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			w.Header().Set("Content-Type", "application/json")
@@ -30,7 +29,7 @@ func NewProtectedResourceHandler(config *config.Config) http.Handler {
 			if config.Authorization.ServerMetadataProxyEnabled {
 				response.AuthorizationServers = []string{config.Host.String()}
 			} else {
-				response.AuthorizationServers = config.Authorization.Servers
+				response.AuthorizationServers = []string{config.Authorization.Server}
 			}
 
 			log.Get(r.Context()).Info("Protected resource metadata", "response", response)

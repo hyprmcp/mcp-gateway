@@ -43,9 +43,7 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 
 	var handler http.Handler = mux
 
-	if len(config.Authorization.Servers) > 0 {
-		handler = oauth.NewOAuthMiddleware(config)(handler)
-	}
+	handler = oauth.NewOAuthMiddleware(config)(handler)
 
 	handler = cors.AllowAll().Handler(handler)
 

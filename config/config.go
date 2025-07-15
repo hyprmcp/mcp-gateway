@@ -22,9 +22,9 @@ type Proxy struct {
 }
 
 type Authorization struct {
-	Servers                          []string `yaml:"servers"`
-	ServerMetadataProxyEnabled       bool     `yaml:"serverMetadataProxyEnabled"`
-	DynamicClientRegistrationEnabled bool     `yaml:"dynamicClientRegistrationEnabled"`
+	Server                           string `yaml:"server"`
+	ServerMetadataProxyEnabled       bool   `yaml:"serverMetadataProxyEnabled"`
+	DynamicClientRegistrationEnabled bool   `yaml:"dynamicClientRegistrationEnabled"`
 }
 
 type DexGRPCClient struct {
@@ -72,6 +72,10 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("host is required")
 	}
 
+	if c.Authorization.Server == "" {
+		return fmt.Errorf("authorization server is required")
+	}
+
 	if c.Authorization.DynamicClientRegistrationEnabled {
 		if !c.Authorization.ServerMetadataProxyEnabled {
 			return fmt.Errorf("serverMetadataProxyEnabled must be true when dynamicClientRegistrationEnabled is true")
@@ -79,12 +83,6 @@ func (c *Config) Validate() error {
 
 		if c.DexGRPCClient == nil || c.DexGRPCClient.Addr == "" {
 			return fmt.Errorf("dexGRPCClient is required when dynamicClientRegistrationEnabled is true")
-		}
-	}
-
-	if c.Authorization.ServerMetadataProxyEnabled {
-		if len(c.Authorization.Servers) != 1 {
-			return fmt.Errorf("when serverMetadataProxyEnabled is true, exactly one authorization server must be configured")
 		}
 	}
 
