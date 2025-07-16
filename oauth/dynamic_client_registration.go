@@ -23,13 +23,13 @@ type ClientInformation struct {
 	LogoURI               string   `json:"logo_uri,omitempty"`
 }
 
-func NewDynamicClientRegistrationHandler(config *config.Config) http.Handler {
+func NewDynamicClientRegistrationHandler(config *config.Config) (http.Handler, error) {
 	grpcClient, err := grpc.NewClient(
 		config.DexGRPCClient.Addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		panic(err) // TODO: handle error properly
+		return nil, err
 	}
 
 	dexClient := api.NewDexClient(grpcClient)
@@ -72,7 +72,7 @@ func NewDynamicClientRegistrationHandler(config *config.Config) http.Handler {
 		}
 
 		log.Get(r.Context()).Info("Client created successfully", "client_id", clientResponse.Client.Id)
-	})
+	}), nil
 }
 
 func genRandom() string {

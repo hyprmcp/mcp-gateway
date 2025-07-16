@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,47 +16,46 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwt"
 )
 
-func NewOAuthMiddleware(config *config.Config) func(http.Handler) http.Handler {
+func NewOAuthMiddleware(ctx context.Context, config *config.Config) (func(http.Handler) http.Handler, error) {
+	var keySet jwk.Set
+	if cache, err := jwk.NewCache(ctx, httprc.NewClient()); err != nil {
+		return nil, err
+	} else if meta, err := GetMedatata(config.Authorization.Server); err != nil {
+		return nil, err
+	} else if jwksURI, ok := meta["jwks_uri"].(string); !ok {
+		return nil, errors.New("no jwks_uri")
+	} else if err := cache.Register(ctx, jwksURI); err != nil {
+		return nil, err
+	} else if _, err := cache.Refresh(ctx, jwksURI); err != nil {
+		return nil, err
+	} else if s, err := cache.CachedSet(jwksURI); err != nil {
+		return nil, err
+	} else {
+		keySet = s
+		log.Get(ctx).Info("got jwk set", "jwks_uri", jwksURI)
+	}
+
+	var mr muxRegistrations
+
+	mr.Add(ProtectedResourcePath, NewProtectedResourceHandler(config))
+
+	if config.Authorization.ServerMetadataProxyEnabled {
+		mr.Add(AuthorizationServerMetadataPath, NewAuthorizationServerMetadataHandler(config))
+	}
+
+	if config.Authorization.DynamicClientRegistrationEnabled {
+		if handler, err := NewDynamicClientRegistrationHandler(config); err != nil {
+			return nil, err
+		} else {
+			rateLimiter := httprate.LimitByRealIP(3, 10*time.Minute)
+			mr.Add(DynamicClientRegistrationPath, rateLimiter(handler))
+		}
+	}
+
 	return func(next http.Handler) http.Handler {
 		mux := http.NewServeMux()
 
-		mux.Handle(
-			ProtectedResourcePath,
-			NewProtectedResourceHandler(config),
-		)
-
-		if config.Authorization.ServerMetadataProxyEnabled {
-			mux.Handle(
-				AuthorizationServerMetadataPath,
-				NewAuthorizationServerMetadataHandler(config),
-			)
-		}
-
-		if config.Authorization.DynamicClientRegistrationEnabled {
-			rateLimiter := httprate.LimitByRealIP(3, 10*time.Minute)
-			mux.Handle(
-				DynamicClientRegistrationPath,
-				rateLimiter(NewDynamicClientRegistrationHandler(config)),
-			)
-		}
-
-		var keySet jwk.Set
-		if cache, err := jwk.NewCache(context.TODO(), httprc.NewClient()); err != nil {
-			panic(err)
-		} else if meta, err := GetMedatata(config.Authorization.Server); err != nil {
-			panic(err)
-		} else if jwksURI, ok := meta["jwks_uri"].(string); !ok {
-			panic("no jwks_uri")
-		} else if err := cache.Register(context.TODO(), jwksURI); err != nil {
-			panic(err)
-		} else if _, err := cache.Refresh(context.TODO(), jwksURI); err != nil {
-			panic(err)
-		} else if s, err := cache.CachedSet(jwksURI); err != nil {
-			panic(err)
-		} else {
-			keySet = s
-			log.Root().Info("got jwk set", "jwks_uri", jwksURI)
-		}
+		mr.Register(mux)
 
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token, err := jwt.ParseHeader(r.Header, "Authorization", jwt.WithKeySet(keySet))
@@ -74,5 +74,5 @@ func NewOAuthMiddleware(config *config.Config) func(http.Handler) http.Handler {
 		}))
 
 		return mux
-	}
+	}, nil
 }

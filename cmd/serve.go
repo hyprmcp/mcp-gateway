@@ -43,7 +43,11 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 
 	var handler http.Handler = mux
 
-	handler = oauth.NewOAuthMiddleware(config)(handler)
+	if oauthHandler, err := oauth.NewOAuthMiddleware(ctx, config); err != nil {
+		return err
+	} else {
+		handler = oauthHandler(handler)
+	}
 
 	handler = cors.AllowAll().Handler(handler)
 
