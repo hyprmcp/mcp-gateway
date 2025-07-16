@@ -8,9 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-chi/httprate"
 	"github.com/jetski-sh/mcp-proxy/config"
+	"github.com/jetski-sh/mcp-proxy/log"
+	"github.com/lestrrat-go/httprc/v3"
+	"github.com/lestrrat-go/jwx/v3/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwt"
 )
 
 func NewOAuthMiddleware(config *config.Config) func(http.Handler) http.Handler {
@@ -37,9 +40,22 @@ func NewOAuthMiddleware(config *config.Config) func(http.Handler) http.Handler {
 			)
 		}
 
-		oidcProvider, err := oidc.NewProvider(context.TODO(), config.Authorization.Server)
-		if err != nil {
-			panic(err) // TODO: handle error properly
+		var keySet jwk.Set
+		if cache, err := jwk.NewCache(context.TODO(), httprc.NewClient()); err != nil {
+			panic(err)
+		} else if meta, err := GetMedatata(config.Authorization.Server); err != nil {
+			panic(err)
+		} else if jwksURI, ok := meta["jwks_uri"].(string); !ok {
+			panic("no jwks_uri")
+		} else if err := cache.Register(context.TODO(), jwksURI); err != nil {
+			panic(err)
+		} else if _, err := cache.Refresh(context.TODO(), jwksURI); err != nil {
+			panic(err)
+		} else if s, err := cache.CachedSet(jwksURI); err != nil {
+			panic(err)
+		} else {
+			keySet = s
+			log.Root().Info("got jwk set", "jwks_uri", jwksURI)
 		}
 
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -55,14 +71,13 @@ func NewOAuthMiddleware(config *config.Config) func(http.Handler) http.Handler {
 				return
 			}
 
-			verifier := oidcProvider.Verifier(&oidc.Config{SkipClientIDCheck: true})
-			_, err = verifier.Verify(r.Context(), token)
+			parsedToken, err := jwt.Parse([]byte(token), jwt.WithKeySet(keySet))
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(w, r.WithContext(AddTokenToContext(r.Context(), parsedToken)))
 		}))
 
 		return mux

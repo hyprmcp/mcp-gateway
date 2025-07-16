@@ -54,7 +54,7 @@ func ParseFile(fileName string) (*Config, error) {
 	if file, err := os.Open(fileName); err != nil {
 		return nil, fmt.Errorf("failed to open config file %s: %w", fileName, err)
 	} else {
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 		return Parse(file)
 	}
 }

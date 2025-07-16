@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jetski-sh/mcp-proxy/log"
+	"github.com/jetski-sh/mcp-proxy/oauth"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/multierr"
 )
@@ -23,6 +25,19 @@ type mcpAwareTransport struct {
 func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	mcpSessionID := req.Header.Get("Mcp-Session-Id")
 	log := log.Get(req.Context()).WithValues("mcpSessionId", mcpSessionID)
+
+	token := oauth.TokenFromContext(req.Context())
+	sub, _ := token.Subject()
+	if subDecoded, err := base64.RawStdEncoding.DecodeString(sub); err == nil {
+		sub = string(subDecoded)
+	}
+	log = log.WithValues("subject", sub)
+	var email string
+	if err := token.Get("email", &email); err == nil {
+		log = log.WithValues("email", email)
+	} else {
+		log.Error(err, "could not get email claim")
+	}
 
 	transport := c.Transport
 	if transport == nil {
