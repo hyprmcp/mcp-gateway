@@ -11,5 +11,6 @@ func NewProxyHandler(url *url.URL) http.Handler {
 		Rewrite: func(r *httputil.ProxyRequest) {
 			r.SetURL(url)
 		},
+		Transport: &mcpAwareTransport{},
 	}
 }
