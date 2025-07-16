@@ -4,6 +4,7 @@ go 1.24.5
 
 require (
 	github.com/dexidp/dex/api/v2 v2.3.0
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-chi/cors v1.2.2
 	github.com/go-chi/httprate v0.15.0
 	github.com/go-logr/logr v1.4.3
