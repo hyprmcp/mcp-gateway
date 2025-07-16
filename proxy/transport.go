@@ -13,7 +13,9 @@ import (
 
 	"github.com/jetski-sh/mcp-proxy/log"
 	"github.com/jetski-sh/mcp-proxy/oauth"
+	"github.com/lestrrat-go/jwx/v3/jwt"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/opencontainers/go-digest"
 	"go.uber.org/multierr"
 )
 
@@ -33,10 +35,15 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	}
 	log = log.WithValues("subject", sub)
 	var email string
-	if err := token.Get("email", &email); err == nil {
-		log = log.WithValues("email", email)
-	} else {
+	if err := token.Get("email", &email); err != nil {
 		log.Error(err, "could not get email claim")
+	} else {
+		log = log.WithValues("email", email)
+	}
+	if st, err := jwt.NewSerializer().Serialize(token); err != nil {
+		log.Error(err, "could not serialize JWT")
+	} else {
+		log = log.WithValues("tokenDigest", digest.FromBytes(st))
 	}
 
 	transport := c.Transport

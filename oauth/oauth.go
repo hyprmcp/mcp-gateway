@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/go-chi/httprate"
@@ -59,8 +58,8 @@ func NewOAuthMiddleware(config *config.Config) func(http.Handler) http.Handler {
 		}
 
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-			if token == "" {
+			token, err := jwt.ParseHeader(r.Header, "Authorization", jwt.WithKeySet(keySet))
+			if err != nil {
 				metadataURL, _ := url.Parse(config.Host.String())
 				metadataURL.Path = ProtectedResourcePath
 				w.Header().Set(
@@ -71,13 +70,7 @@ func NewOAuthMiddleware(config *config.Config) func(http.Handler) http.Handler {
 				return
 			}
 
-			parsedToken, err := jwt.Parse([]byte(token), jwt.WithKeySet(keySet))
-			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-
-			next.ServeHTTP(w, r.WithContext(AddTokenToContext(r.Context(), parsedToken)))
+			next.ServeHTTP(w, r.WithContext(AddTokenToContext(r.Context(), token)))
 		}))
 
 		return mux

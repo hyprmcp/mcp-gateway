@@ -11,6 +11,7 @@ require (
 	github.com/lestrrat-go/httprc/v3 v3.0.0
 	github.com/lestrrat-go/jwx/v3 v3.0.8
 	github.com/modelcontextprotocol/go-sdk v0.2.0
+	github.com/opencontainers/go-digest v1.0.0
 	github.com/spf13/cobra v1.9.1
 	go.uber.org/multierr v1.11.0
 	google.golang.org/grpc v1.73.0
