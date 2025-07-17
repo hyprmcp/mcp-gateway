@@ -1,6 +1,8 @@
 package proxy
 
-import "io"
+import (
+	"io"
+)
 
 type readCloser struct {
 	io.Reader

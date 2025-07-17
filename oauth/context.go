@@ -6,14 +6,19 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwt"
 )
 
-type keyType struct{}
+type tokenKey struct{}
+type rawTokenKey struct{}
 
-var key keyType
-
-func AddTokenToContext(parent context.Context, token jwt.Token) context.Context {
-	return context.WithValue(parent, key, token)
+func TokenContext(parent context.Context, token jwt.Token, rawToken string) context.Context {
+	parent = context.WithValue(parent, tokenKey{}, token)
+	parent = context.WithValue(parent, rawTokenKey{}, rawToken)
+	return parent
 }
 
-func TokenFromContext(ctx context.Context) jwt.Token {
-	return ctx.Value(key).(jwt.Token)
+func GetToken(ctx context.Context) jwt.Token {
+	return ctx.Value(tokenKey{}).(jwt.Token)
+}
+
+func GetRawToken(ctx context.Context) string {
+	return ctx.Value(rawTokenKey{}).(string)
 }

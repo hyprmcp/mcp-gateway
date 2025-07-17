@@ -37,7 +37,7 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 
 	for _, p := range config.Proxy {
 		if p.Http != nil && p.Http.Url != nil {
-			mux.Handle(p.Path, proxy.NewProxyHandler((*url.URL)(p.Http.Url)))
+			mux.Handle(p.Path, proxy.NewProxyHandler((*url.URL)(p.Http.Url), config.Webhook))
 		}
 	}
 

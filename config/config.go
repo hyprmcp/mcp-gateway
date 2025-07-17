@@ -14,6 +14,7 @@ type Config struct {
 	Authorization Authorization  `yaml:"authorization"`
 	DexGRPCClient *DexGRPCClient `yaml:"dexGRPCClient,omitempty"`
 	Proxy         []Proxy        `yaml:"proxy"`
+	Webhook       *Webhook       `yaml:"webhook,omitempty"`
 }
 
 type Proxy struct {
@@ -33,6 +34,11 @@ type DexGRPCClient struct {
 
 type ProxyHttp struct {
 	Url *YamlUrl `yaml:"url"`
+}
+
+type Webhook struct {
+	Method string  `yaml:"method,omitempty"`
+	Url    YamlUrl `yaml:"url"`
 }
 
 type YamlUrl url.URL

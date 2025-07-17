@@ -1,65 +1,49 @@
 package proxy
 
 import (
-	"bytes"
-	"encoding/base64"
-	"encoding/json"
-	"errors"
-	"fmt"
+	"context"
 	"io"
 	"net/http"
 	"sync"
 	"time"
 
+	"github.com/jetski-sh/mcp-proxy/config"
 	"github.com/jetski-sh/mcp-proxy/log"
 	"github.com/jetski-sh/mcp-proxy/oauth"
-	"github.com/lestrrat-go/jwx/v3/jwt"
-	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/jetski-sh/mcp-proxy/webhook"
 	"github.com/opencontainers/go-digest"
-	"go.uber.org/multierr"
 )
 
 type mcpAwareTransport struct {
 	Transport http.RoundTripper
+	config    *config.Webhook
+}
+
+func (c *mcpAwareTransport) getTransport() http.RoundTripper {
+	if c.Transport != nil {
+		return c.Transport
+	}
+	return http.DefaultTransport
 }
 
 // RoundTrip implements http.RoundTripper.
 func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	mcpSessionID := req.Header.Get("Mcp-Session-Id")
-	log := log.Get(req.Context()).WithValues("mcpSessionId", mcpSessionID)
-
-	token := oauth.TokenFromContext(req.Context())
-	sub, _ := token.Subject()
-	if subDecoded, err := base64.RawStdEncoding.DecodeString(sub); err == nil {
-		sub = string(subDecoded)
-	}
-	log = log.WithValues("subject", sub)
-	var email string
-	if err := token.Get("email", &email); err != nil {
-		log.Error(err, "could not get email claim")
-	} else {
-		log = log.WithValues("email", email)
-	}
-	if st, err := jwt.NewSerializer().Serialize(token); err != nil {
-		log.Error(err, "could not serialize JWT")
-	} else {
-		log = log.WithValues("tokenDigest", digest.FromBytes(st))
+	if c.config == nil || req.Method != http.MethodPost {
+		return c.getTransport().RoundTrip(req)
 	}
 
-	transport := c.Transport
-	if transport == nil {
-		transport = http.DefaultTransport
-	}
+	log := log.Get(req.Context())
+	webhookPayload := webhookPayloadFromReq(req)
 
+	var reqGetter requestGetterWriter
+	var respGetter responseGetterWriter
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	var reqBody, respBody bytes.Buffer
-
 	if req.Body != nil {
-		// retain Close functionality of the original body
+		reqGetter = &rpcBufferGetter{}
 		req.Body = &readCloser{
-			Reader: io.TeeReader(req.Body, &reqBody),
+			Reader: io.TeeReader(req.Body, reqGetter),
 			closeFunc: sync.OnceValue(func() error {
 				wg.Done()
 				return req.Body.Close()
@@ -67,25 +51,25 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 		}
 	}
 
-	timeBefore := time.Now()
+	resp, err := c.getTransport().RoundTrip(req)
 
-	resp, err := transport.RoundTrip(req)
+	if err != nil {
+		webhookPayload.HttpError = err.Error()
+	} else {
+		webhookPayload.HttpResponseCode = resp.StatusCode
 
-	var events []Event
-
-	if resp != nil && resp.Body != nil {
-		var w io.Writer
 		switch resp.Header.Get("Content-Type") {
 		case "application/json", "application/json; charset=utf-8":
-			w = &respBody
+			respGetter = &rpcBufferGetter{}
 		case "text/event-stream":
-			w = &EventStreamWriter{
-				handler: func(event Event) { events = append(events, event) },
-			}
+			respGetter = newRPCEventStreamGetter()
+		default:
+			log.Info("unknown response content type",
+				"contentType", resp.Header.Get("Content-Type"))
 		}
 
 		resp.Body = &readCloser{
-			Reader: io.TeeReader(resp.Body, w),
+			Reader: io.TeeReader(resp.Body, respGetter),
 			closeFunc: sync.OnceValue(func() error {
 				wg.Done()
 				return resp.Body.Close()
@@ -96,68 +80,56 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	go func() {
 		wg.Wait()
 
-		timeElapsed := time.Since(timeBefore)
+		webhookPayload.Duration = time.Since(webhookPayload.StartTime)
 
-		var rpcRequest JSONRPCMessage
-		if err := json.Unmarshal(reqBody.Bytes(), &rpcRequest); err != nil {
-			log.Error(err, "could not decode request body", "data", reqBody.String())
-		} else if rpcRequest.Method == "tools/call" {
-			var toolParams mcp.CallToolParams
-			var toolResult mcp.CallToolResult
-
-			if err := json.Unmarshal(rpcRequest.Params, &toolParams); err != nil {
-				log.Error(err, "could not decode JSON-RPC params as MCP tool call")
-			} else if rpcResponse, err := getJSONRPCResponse(respBody.Bytes(), events); err != nil {
-				log.Error(err, "could not get JSON-RPC response")
-			} else if rpcResponse.Error != nil {
-				log.Info("got JSON-RPC error", "code", rpcResponse.Error.Code, "message", rpcResponse.Error.Message)
-			} else if err := json.Unmarshal(rpcResponse.Result, &toolResult); err != nil {
-				log.Error(err, "could not decode JSON-RPC result as tool result")
-			} else {
-				log.Info("proxy request done",
-					"jsonRpcId", rpcRequest.ID,
-					"userAgent", req.Header.Get("User-Agent"),
-					"timeElapsed", timeElapsed,
-					"toolParams", toolParams,
-					"toolResult", toolResult,
-				)
-			}
+		if reqGetter == nil {
+			log.Error(err, "request getter is not set")
+		} else if r, err := reqGetter.GetJSONRPCRequest(); err != nil {
+			log.Error(err, "could not get JSON-RPC request")
 		} else {
-			log.Info("not a tool call", "method", rpcRequest.Method)
+			webhookPayload.RPCRequest = r
+		}
+
+		if respGetter == nil {
+			log.Error(err, "response getter is not set")
+		} else if r, err := respGetter.GetJSONRPCResponse(); err != nil {
+			log.Error(err, "could not get JSON-RPC response")
+		} else {
+			webhookPayload.RPCResponse = r
+		}
+
+		log.Info("webhook payload assembled", "payload", webhookPayload)
+
+		if err := webhook.Send(
+			context.Background(),
+			c.config.Method,
+			c.config.Url.String(),
+			webhookPayload,
+		); err != nil {
+			log.Error(err, "webhook error")
 		}
 	}()
 
 	return resp, err
 }
 
-func getJSONRPCResponse(body []byte, events []Event) (*JSONRPCMessage, error) {
-	var msg JSONRPCMessage
-
-	if len(body) > 0 {
-		if err := json.Unmarshal(body, &msg); err != nil {
-			return nil, fmt.Errorf("could not decode body as JSON-RPC message: %w", err)
-		}
-
-		return &msg, nil
-	} else {
-		var aggErr error
-
-		for _, e := range events {
-			if e.Data == "" {
-				continue
-			}
-
-			if err := json.Unmarshal([]byte(e.Data), &msg); err != nil {
-				multierr.AppendInto(&aggErr, fmt.Errorf("could not decode SSE data as JSON-RPC message: %w", err))
-			} else if msg.IsResponse() {
-				return &msg, nil
-			}
-		}
-
-		if aggErr == nil {
-			aggErr = errors.New("no JSON-RPC message found in SSE events")
-		}
-
-		return nil, aggErr
+func webhookPayloadFromReq(req *http.Request) webhook.WebhookPayload {
+	webhookPayload := webhook.WebhookPayload{
+		MCPSessionID: req.Header.Get("Mcp-Session-Id"),
+		TokenDigest:  digest.FromString(oauth.GetRawToken(req.Context())),
+		StartTime:    time.Now(),
+		UserAgent:    req.UserAgent(),
 	}
+
+	token := oauth.GetToken(req.Context())
+	webhookPayload.Subject, _ = token.Subject()
+
+	var email string
+	if err := token.Get("email", &email); err != nil {
+		log.Get(req.Context()).Error(err, "could not get email claim from token")
+	} else {
+		webhookPayload.SubjectEmail = email
+	}
+
+	return webhookPayload
 }
