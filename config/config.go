@@ -14,12 +14,12 @@ type Config struct {
 	Authorization Authorization  `yaml:"authorization"`
 	DexGRPCClient *DexGRPCClient `yaml:"dexGRPCClient,omitempty"`
 	Proxy         []Proxy        `yaml:"proxy"`
-	Webhook       *Webhook       `yaml:"webhook,omitempty"`
 }
 
 type Proxy struct {
-	Path string     `yaml:"path"`
-	Http *ProxyHttp `yaml:"http,omitempty"`
+	Path    string     `yaml:"path"`
+	Http    *ProxyHttp `yaml:"http,omitempty"`
+	Webhook *Webhook   `yaml:"webhook,omitempty"`
 }
 
 type Authorization struct {

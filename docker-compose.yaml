@@ -3,17 +3,17 @@ services:
     image: ghcr.io/jetski-sh/weather-mcp-python:main
     ports:
       - 8000:8000
-  dex:
-    image: ghcr.io/dexidp/dex:v2.43.1-distroless
-    command: ["dex", "serve", "/config.yaml"]
-    ports:
-      - 5556:5556
-      - 5557:5557
-    configs:
-      - source: config.yaml
-        target: /config.yaml
-    env_file:
-      - .dex.secret.env
+  # dex:
+  #   image: ghcr.io/dexidp/dex:v2.43.1-distroless
+  #   command: ["dex", "serve", "/config.yaml"]
+  #   ports:
+  #     - 5556:5556
+  #     - 5557:5557
+  #   configs:
+  #     - source: config.yaml
+  #       target: /config.yaml
+  #   env_file:
+  #     - .dex.secret.env
   # keycloak:
   #   image: quay.io/keycloak/keycloak:26.3.1
   #   command: ["start-dev"]

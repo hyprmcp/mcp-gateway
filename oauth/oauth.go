@@ -20,17 +20,17 @@ import (
 func NewOAuthMiddleware(ctx context.Context, config *config.Config) (func(http.Handler) http.Handler, error) {
 	var keySet jwk.Set
 	if cache, err := jwk.NewCache(ctx, httprc.NewClient()); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jwk cache creation error: %w", err)
 	} else if meta, err := GetMedatata(config.Authorization.Server); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("authorization server metadata error: %w", err)
 	} else if jwksURI, ok := meta["jwks_uri"].(string); !ok {
 		return nil, errors.New("no jwks_uri")
 	} else if err := cache.Register(ctx, jwksURI); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jwks registration error: %w", err)
 	} else if _, err := cache.Refresh(ctx, jwksURI); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jwks refresh error: %w", err)
 	} else if s, err := cache.CachedSet(jwksURI); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jwks cache set error: %w", err)
 	} else {
 		keySet = s
 		log.Get(ctx).Info("got jwk set", "jwks_uri", jwksURI)

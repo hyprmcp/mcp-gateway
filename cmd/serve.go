@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-chi/cors"
@@ -73,7 +72,7 @@ func newHandler(ctx context.Context, config *config.Config) (http.Handler, error
 
 	for _, p := range config.Proxy {
 		if p.Http != nil && p.Http.Url != nil {
-			mux.Handle(p.Path, proxy.NewProxyHandler((*url.URL)(p.Http.Url), config.Webhook))
+			mux.Handle(p.Path, proxy.NewProxyHandler(&p))
 		}
 	}
 

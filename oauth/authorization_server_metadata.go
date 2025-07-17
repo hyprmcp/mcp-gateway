@@ -52,7 +52,7 @@ func GetMedatata(server string) (map[string]any, error) {
 		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode >= http.StatusBadRequest {
-			return nil, fmt.Errorf("authorization server returned error: %s", resp.Status)
+			return nil, fmt.Errorf("failed to fetch %v: %v", u, resp.Status)
 		}
 
 		var metadata map[string]any

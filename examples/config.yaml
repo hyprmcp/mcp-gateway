@@ -9,5 +9,5 @@ proxy:
   - path: /weather/mcp
     http:
       url: http://localhost:8000/mcp
-webhook:
-  url: https://webhook.site/ec346a12-0169-4eb9-b885-2176e3340737
+    webhook:
+      url: http://localhost:8080/webhook/proxy/b7dc761d-a488-4186-a40e-4d9831d562dc

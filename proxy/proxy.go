@@ -8,13 +8,15 @@ import (
 	"github.com/jetski-sh/mcp-proxy/config"
 )
 
-func NewProxyHandler(url *url.URL, webhook *config.Webhook) http.Handler {
+func NewProxyHandler(config *config.Proxy) http.Handler {
+	url := (*url.URL)(config.Http.Url)
+
 	return &httputil.ReverseProxy{
 		Rewrite: func(r *httputil.ProxyRequest) {
 			r.SetURL(url)
 		},
 		Transport: &mcpAwareTransport{
-			config: webhook,
+			config: config.Webhook,
 		},
 	}
 }

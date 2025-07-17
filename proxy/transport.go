@@ -56,7 +56,7 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	if err != nil {
 		webhookPayload.HttpError = err.Error()
 	} else {
-		webhookPayload.HttpResponseCode = resp.StatusCode
+		webhookPayload.HttpStatusCode = resp.StatusCode
 
 		switch resp.Header.Get("Content-Type") {
 		case "application/json", "application/json; charset=utf-8":
@@ -80,14 +80,14 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	go func() {
 		wg.Wait()
 
-		webhookPayload.Duration = time.Since(webhookPayload.StartTime)
+		webhookPayload.Duration = time.Since(webhookPayload.StartedAt)
 
 		if reqGetter == nil {
 			log.Error(err, "request getter is not set")
 		} else if r, err := reqGetter.GetJSONRPCRequest(); err != nil {
 			log.Error(err, "could not get JSON-RPC request")
 		} else {
-			webhookPayload.RPCRequest = r
+			webhookPayload.MCPRequest = r
 		}
 
 		if respGetter == nil {
@@ -95,7 +95,7 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 		} else if r, err := respGetter.GetJSONRPCResponse(); err != nil {
 			log.Error(err, "could not get JSON-RPC response")
 		} else {
-			webhookPayload.RPCResponse = r
+			webhookPayload.MCPResponse = r
 		}
 
 		log.Info("webhook payload assembled", "payload", webhookPayload)
@@ -115,10 +115,10 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 
 func webhookPayloadFromReq(req *http.Request) webhook.WebhookPayload {
 	webhookPayload := webhook.WebhookPayload{
-		MCPSessionID: req.Header.Get("Mcp-Session-Id"),
-		TokenDigest:  digest.FromString(oauth.GetRawToken(req.Context())),
-		StartTime:    time.Now(),
-		UserAgent:    req.UserAgent(),
+		MCPSessionID:    req.Header.Get("Mcp-Session-Id"),
+		AuthTokenDigest: digest.FromString(oauth.GetRawToken(req.Context())),
+		StartedAt:       time.Now(),
+		UserAgent:       req.UserAgent(),
 	}
 
 	token := oauth.GetToken(req.Context())

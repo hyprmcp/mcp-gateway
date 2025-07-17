@@ -53,6 +53,7 @@ func NewDynamicClientRegistrationHandler(config *config.Config) (http.Handler, e
 
 		clientResponse, err := dexClient.CreateClient(r.Context(), &api.CreateClientReq{Client: &client})
 		if err != nil {
+			log.Get(r.Context()).Error(err, "failed to create client")
 			http.Error(w, "Failed to create client", http.StatusInternalServerError)
 			return
 		}
