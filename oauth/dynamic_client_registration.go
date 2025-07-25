@@ -45,6 +45,7 @@ func NewDynamicClientRegistrationHandler(config *config.Config) (http.Handler, e
 
 		client := api.Client{
 			Id:           genRandom(),
+			Secret:       genRandom(),
 			Name:         body.ClientName,
 			LogoUrl:      body.LogoURI,
 			RedirectUris: body.RedirectURIs,
