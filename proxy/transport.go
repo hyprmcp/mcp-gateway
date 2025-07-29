@@ -115,20 +115,23 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 
 func webhookPayloadFromReq(req *http.Request) webhook.WebhookPayload {
 	webhookPayload := webhook.WebhookPayload{
-		MCPSessionID:    req.Header.Get("Mcp-Session-Id"),
-		AuthTokenDigest: digest.FromString(oauth.GetRawToken(req.Context())),
-		StartedAt:       time.Now(),
-		UserAgent:       req.UserAgent(),
+		MCPSessionID: req.Header.Get("Mcp-Session-Id"),
+		StartedAt:    time.Now(),
+		UserAgent:    req.UserAgent(),
 	}
 
-	token := oauth.GetToken(req.Context())
-	webhookPayload.Subject, _ = token.Subject()
+	if rawToken := oauth.GetRawToken(req.Context()); rawToken != "" {
+		webhookPayload.AuthTokenDigest = digest.FromString(rawToken)
+	}
 
-	var email string
-	if err := token.Get("email", &email); err != nil {
-		log.Get(req.Context()).Error(err, "could not get email claim from token")
-	} else {
-		webhookPayload.SubjectEmail = email
+	if token := oauth.GetToken(req.Context()); token != nil {
+		webhookPayload.Subject, _ = token.Subject()
+		var email string
+		if err := token.Get("email", &email); err != nil {
+			log.Get(req.Context()).Error(err, "could not get email claim from token")
+		} else {
+			webhookPayload.SubjectEmail = email
+		}
 	}
 
 	return webhookPayload

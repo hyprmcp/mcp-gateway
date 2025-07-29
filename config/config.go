@@ -16,12 +16,6 @@ type Config struct {
 	Proxy         []Proxy        `yaml:"proxy"`
 }
 
-type Proxy struct {
-	Path    string     `yaml:"path"`
-	Http    *ProxyHttp `yaml:"http,omitempty"`
-	Webhook *Webhook   `yaml:"webhook,omitempty"`
-}
-
 type Authorization struct {
 	Server                           string `yaml:"server"`
 	ServerMetadataProxyEnabled       bool   `yaml:"serverMetadataProxyEnabled"`
@@ -32,8 +26,19 @@ type DexGRPCClient struct {
 	Addr string `yaml:"addr"`
 }
 
+type Proxy struct {
+	Path           string              `yaml:"path"`
+	Http           *ProxyHttp          `yaml:"http,omitempty"`
+	Authentication ProxyAuthentication `yaml:"authentication"`
+	Webhook        *Webhook            `yaml:"webhook,omitempty"`
+}
+
 type ProxyHttp struct {
 	Url *YamlUrl `yaml:"url"`
+}
+
+type ProxyAuthentication struct {
+	Enabled bool `yaml:"enabled"`
 }
 
 type Webhook struct {

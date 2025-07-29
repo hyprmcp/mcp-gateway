@@ -35,7 +35,7 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 
 	handler := &delegateHandler{}
 
-	if h, err := newHandler(ctx, cfg); err != nil {
+	if h, err := newRouter(ctx, cfg); err != nil {
 		return err
 	} else {
 		handler.delegate = h
@@ -46,7 +46,7 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 			opts.Config,
 			func(c *config.Config) {
 				log.Get(ctx).Info("Reconfiguring server after config change...")
-				if h, err := newHandler(ctx, c); err != nil {
+				if h, err := newRouter(ctx, c); err != nil {
 					log.Get(ctx).Error(err, "failed to reload server")
 				} else {
 					handler.delegate = h
@@ -67,24 +67,31 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 	return nil
 }
 
-func newHandler(ctx context.Context, config *config.Config) (http.Handler, error) {
+func newRouter(ctx context.Context, config *config.Config) (http.Handler, error) {
 	mux := http.NewServeMux()
 
-	for _, p := range config.Proxy {
-		if p.Http != nil && p.Http.Url != nil {
-			mux.Handle(p.Path, proxy.NewProxyHandler(&p))
+	oauthManager, err := oauth.NewManager(ctx, config)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := oauthManager.Register(mux); err != nil {
+		return nil, err
+	}
+
+	for _, proxyConfig := range config.Proxy {
+		if proxyConfig.Http != nil && proxyConfig.Http.Url != nil {
+			handler := proxy.NewProxyHandler(&proxyConfig)
+
+			if proxyConfig.Authentication.Enabled {
+				handler = oauthManager.Handler(handler)
+			}
+
+			mux.Handle(proxyConfig.Path, handler)
 		}
 	}
 
-	var handler http.Handler = mux
-
-	if oauthHandler, err := oauth.NewOAuthMiddleware(ctx, config); err != nil {
-		return nil, err
-	} else {
-		handler = oauthHandler(handler)
-	}
-
-	return handler, nil
+	return mux, nil
 }
 
 func WatchConfigChanges(path string, callback func(*config.Config)) error {

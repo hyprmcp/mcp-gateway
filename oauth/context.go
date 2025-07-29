@@ -16,9 +16,17 @@ func TokenContext(parent context.Context, token jwt.Token, rawToken string) cont
 }
 
 func GetToken(ctx context.Context) jwt.Token {
-	return ctx.Value(tokenKey{}).(jwt.Token)
+	if val, ok := ctx.Value(tokenKey{}).(jwt.Token); ok {
+		return val
+	} else {
+		return nil
+	}
 }
 
 func GetRawToken(ctx context.Context) string {
-	return ctx.Value(rawTokenKey{}).(string)
+	if val, ok := ctx.Value(rawTokenKey{}).(string); ok {
+		return val
+	} else {
+		return ""
+	}
 }
