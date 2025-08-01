@@ -68,12 +68,16 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 				"contentType", resp.Header.Get("Content-Type"))
 		}
 
-		resp.Body = &readCloser{
-			Reader: io.TeeReader(resp.Body, respGetter),
-			closeFunc: sync.OnceValue(func() error {
-				wg.Done()
-				return resp.Body.Close()
-			}),
+		if respGetter != nil {
+			resp.Body = &readCloser{
+				Reader: io.TeeReader(resp.Body, respGetter),
+				closeFunc: sync.OnceValue(func() error {
+					wg.Done()
+					return resp.Body.Close()
+				}),
+			}
+		} else {
+			wg.Done()
 		}
 	}
 

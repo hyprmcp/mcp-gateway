@@ -8,13 +8,13 @@ dexGRPCClient:
 proxy:
   - path: /weather/mcp
     http:
-      url: http://localhost:8000/mcp
+      url: http://localhost:8000/mcp/
     webhook:
-      url: http://localhost:8080/webhook/proxy/b7dc761d-a488-4186-a40e-4d9831d562dc
+      url: http://localhost:8080/webhook/proxy/87dd8dde-c7aa-4535-a6d7-3b313ffb1d0c
     authentication:
       enabled: true
   - path: /public-weather/mcp
     http:
-      url: http://localhost:8000/mcp
+      url: http://localhost:8000/mcp/
     webhook:
-      url: http://localhost:8080/webhook/proxy/b7dc761d-a488-4186-a40e-4d9831d562dc
+      url: http://localhost:8080/webhook/proxy/87dd8dde-c7aa-4535-a6d7-3b313ffb1d0c

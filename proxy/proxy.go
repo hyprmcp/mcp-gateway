@@ -13,7 +13,16 @@ func NewProxyHandler(config *config.Proxy) http.Handler {
 
 	return &httputil.ReverseProxy{
 		Rewrite: func(r *httputil.ProxyRequest) {
-			r.SetURL(url)
+			r.Out.URL.Scheme = url.Scheme
+			r.Out.URL.Host = url.Host
+			r.Out.URL.Path = url.Path
+			r.Out.URL.RawPath = url.RawPath
+			if r.Out.URL.RawQuery == "" || url.RawQuery == "" {
+				r.Out.URL.RawQuery = r.Out.URL.RawQuery + url.RawQuery
+			} else {
+				r.Out.URL.RawQuery = url.RawQuery + "&" + r.Out.URL.RawQuery
+			}
+			r.Out.Host = ""
 		},
 		Transport: &mcpAwareTransport{
 			config: config.Webhook,
