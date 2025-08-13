@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
@@ -10,16 +11,16 @@ import (
 )
 
 type Config struct {
-	Host          *YamlUrl       `yaml:"host"`
-	Authorization Authorization  `yaml:"authorization"`
-	DexGRPCClient *DexGRPCClient `yaml:"dexGRPCClient,omitempty"`
-	Proxy         []Proxy        `yaml:"proxy"`
+	Host          *URL           `yaml:"host" json:"host"`
+	Authorization Authorization  `yaml:"authorization" json:"authorization"`
+	DexGRPCClient *DexGRPCClient `yaml:"dexGRPCClient,omitempty" json:"dexGRPCClient,omitempty"`
+	Proxy         []Proxy        `yaml:"proxy" json:"proxy"`
 }
 
 type Authorization struct {
-	Server                           string `yaml:"server"`
-	ServerMetadataProxyEnabled       bool   `yaml:"serverMetadataProxyEnabled"`
-	DynamicClientRegistrationEnabled bool   `yaml:"dynamicClientRegistrationEnabled"`
+	Server                           string `yaml:"server" json:"server"`
+	ServerMetadataProxyEnabled       bool   `yaml:"serverMetadataProxyEnabled" json:"serverMetadataProxyEnabled"`
+	DynamicClientRegistrationEnabled bool   `yaml:"dynamicClientRegistrationEnabled" json:"dynamicClientRegistrationEnabled"`
 }
 
 type DexGRPCClient struct {
@@ -27,37 +28,57 @@ type DexGRPCClient struct {
 }
 
 type Proxy struct {
-	Path           string              `yaml:"path"`
-	Http           *ProxyHttp          `yaml:"http,omitempty"`
-	Authentication ProxyAuthentication `yaml:"authentication"`
-	Webhook        *Webhook            `yaml:"webhook,omitempty"`
+	Path           string              `yaml:"path" json:"path"`
+	Http           *ProxyHttp          `yaml:"http,omitempty" json:"http,omitempty"`
+	Authentication ProxyAuthentication `yaml:"authentication" json:"authentication"`
+	Webhook        *Webhook            `yaml:"webhook,omitempty" json:"webhook,omitempty"`
 }
 
 type ProxyHttp struct {
-	Url *YamlUrl `yaml:"url"`
+	Url *URL `yaml:"url" json:"url"`
 }
 
 type ProxyAuthentication struct {
-	Enabled bool `yaml:"enabled"`
+	Enabled bool `yaml:"enabled" json:"enabled"`
 }
 
 type Webhook struct {
-	Method string  `yaml:"method,omitempty"`
-	Url    YamlUrl `yaml:"url"`
+	Method string `yaml:"method,omitempty" json:"method,omitempty"`
+	Url    URL    `yaml:"url" json:"url"`
 }
 
-type YamlUrl url.URL
+type URL url.URL
 
-func (p *YamlUrl) UnmarshalYAML(value *yaml.Node) error {
-	if parsed, err := url.Parse(value.Value); err != nil {
+func (p *URL) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	} else if parsed, err := url.Parse(s); err != nil {
 		return err
 	} else {
-		*p = YamlUrl(*parsed)
+		*p = URL(*parsed)
 		return nil
 	}
 }
 
-func (p *YamlUrl) String() string {
+func (p URL) MarshalJSON() ([]byte, error) {
+	return json.Marshal(p.String())
+}
+
+func (p *URL) UnmarshalYAML(value *yaml.Node) error {
+	if parsed, err := url.Parse(value.Value); err != nil {
+		return err
+	} else {
+		*p = URL(*parsed)
+		return nil
+	}
+}
+
+func (p URL) MarshalYAML() (any, error) {
+	return p.String(), nil
+}
+
+func (p *URL) String() string {
 	return (*url.URL)(p).String()
 }
 
@@ -76,6 +97,14 @@ func Parse(r io.Reader) (*Config, error) {
 		return nil, fmt.Errorf("failed to decode config: %w", err)
 	}
 	return &config, config.Validate()
+}
+
+func (c *Config) YAMLString() (string, error) {
+	if data, err := yaml.Marshal(c); err != nil {
+		return "", err
+	} else {
+		return string(data), nil
+	}
 }
 
 func (c *Config) Validate() error {
