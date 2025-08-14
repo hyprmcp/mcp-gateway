@@ -1,13 +1,17 @@
 package proxy
 
 import (
+	"bufio"
+	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/jetski-sh/mcp-proxy/config"
+	"github.com/jetski-sh/mcp-proxy/jsonrpc"
 	"github.com/jetski-sh/mcp-proxy/log"
 	"github.com/jetski-sh/mcp-proxy/oauth"
 	"github.com/jetski-sh/mcp-proxy/webhook"
@@ -35,19 +39,43 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	log := log.Get(req.Context())
 	webhookPayload := webhookPayloadFromReq(req)
 
-	var reqGetter requestGetterWriter
-	var respGetter responseGetterWriter
 	var wg sync.WaitGroup
-	wg.Add(2)
+
+	isToolsListRequest := false
 
 	if req.Body != nil {
-		reqGetter = &rpcBufferGetter{}
-		req.Body = &readCloser{
-			Reader: io.TeeReader(req.Body, reqGetter),
-			closeFunc: sync.OnceValue(func() error {
-				wg.Done()
-				return req.Body.Close()
-			}),
+		defer req.Body.Close()
+		if data, err := io.ReadAll(req.Body); err != nil {
+			// TODO think about error handling some more
+			return nil, err
+		} else if rpcMsg, err := jsonrpc.ParseMessage(data); err == nil {
+			req.Body = io.NopCloser(bytes.NewBuffer(data))
+			log.Error(err, "body parse error")
+		} else if rpcReq, ok := rpcMsg.(*jsonrpc.Request); !ok {
+			req.Body = io.NopCloser(bytes.NewBuffer(data))
+		} else {
+			webhookPayload.MCPRequest = rpcReq
+			isToolsListRequest = rpcReq.Method == "tools/list"
+
+			if rpcReq.Method == "tools/call" {
+				newReq := &jsonrpc.Request{
+					ID:     rpcReq.ID,
+					Method: rpcReq.Method,
+					// TODO: Parse the request params as MCP tool call request, remove the telemetry arguments and set req.Body to a new
+					// buffer of the modified request
+					Params:      rpcReq.Params,
+					Notif:       rpcReq.Notif,
+					Meta:        rpcReq.Meta,
+					ExtraFields: rpcReq.ExtraFields,
+				}
+				if newData, err := json.Marshal(newReq); err != nil {
+					log.Error(err, "failed to marshal rpc request")
+				} else {
+					data = newData
+				}
+			}
+
+			req.Body = io.NopCloser(bytes.NewBuffer(data))
 		}
 	}
 
@@ -60,24 +88,79 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 
 		switch resp.Header.Get("Content-Type") {
 		case "application/json", "application/json; charset=utf-8":
-			respGetter = &rpcBufferGetter{}
+			defer resp.Body.Close()
+
+			if data, err := io.ReadAll(resp.Body); err != nil {
+				// TODO think about error handling some more
+				return nil, err
+			} else if rpcMsg, err := jsonrpc.ParseMessage(data); err != nil {
+				log.Error(nil, "failed to parse JSONRPC message")
+				resp.Body = io.NopCloser(bytes.NewBuffer(data))
+			} else if rpcResp, ok := rpcMsg.(*jsonrpc.Response); !ok {
+				log.Error(err, "not a JSONRPC response")
+				resp.Body = io.NopCloser(bytes.NewBuffer(data))
+			} else {
+				webhookPayload.MCPResponse = rpcResp
+
+				if isToolsListRequest {
+					newResp := &jsonrpc.Response{
+						ID: rpcResp.ID,
+						// TODO: parse the rpcResponse as MCP tools list response and add the telemetry arguments to all tools
+						Result: rpcResp.Result,
+						Error:  rpcResp.Error,
+						Meta:   rpcResp.Meta,
+					}
+
+					if newData, err := json.Marshal(newResp); err != nil {
+						log.Error(err, "failed to serialize modified JSONRPC response")
+					} else {
+						data = newData
+					}
+				}
+
+				resp.Body = io.NopCloser(bytes.NewBuffer(data))
+			}
 		case "text/event-stream":
-			respGetter = newRPCEventStreamGetter()
+			wg.Add(1)
+
+			resp.Body = &eventStreamReader{
+				s: bufio.NewScanner(resp.Body),
+				mutateFunc: func(e Event) Event {
+					// TODO: parse the event data as JSONRPC response and add the telemetry arguments to all tools
+					if rpcMsg, err := jsonrpc.ParseMessage([]byte(e.Data)); err != nil {
+						log.Error(err, "failed to parse JSONRPC message")
+					} else if rpcResp, ok := rpcMsg.(*jsonrpc.Response); !ok {
+						log.Error(nil, "not a JSONRPC response")
+					} else {
+						webhookPayload.MCPResponse = rpcResp
+
+						if isToolsListRequest {
+							newResp := &jsonrpc.Response{
+								ID: rpcResp.ID,
+								// TODO: parse the rpcResponse as MCP tools list response and add the telemetry arguments to all tools
+								Result: rpcResp.Result,
+								Error:  rpcResp.Error,
+								Meta:   rpcResp.Meta,
+							}
+
+							if newData, err := json.Marshal(newResp); err == nil {
+								e.Data = string(newData)
+							} else {
+								log.Error(err, "failed to serialize modified JSONRPC response")
+							}
+						}
+					}
+
+					return e
+				},
+				closeFunc: func() error {
+					wg.Done()
+					return resp.Body.Close()
+				},
+			}
 		default:
 			log.Info("unknown response content type",
 				"contentType", resp.Header.Get("Content-Type"))
-		}
-
-		if respGetter != nil {
-			resp.Body = &readCloser{
-				Reader: io.TeeReader(resp.Body, respGetter),
-				closeFunc: sync.OnceValue(func() error {
-					wg.Done()
-					return resp.Body.Close()
-				}),
-			}
-		} else {
-			wg.Done()
 		}
 	}
 
@@ -85,22 +168,6 @@ func (c *mcpAwareTransport) RoundTrip(req *http.Request) (*http.Response, error)
 		wg.Wait()
 
 		webhookPayload.Duration = time.Since(webhookPayload.StartedAt)
-
-		if reqGetter == nil {
-			log.Error(err, "request getter is not set")
-		} else if r, err := reqGetter.GetJSONRPCRequest(); err != nil {
-			log.Error(err, "could not get JSON-RPC request")
-		} else {
-			webhookPayload.MCPRequest = r
-		}
-
-		if respGetter == nil {
-			log.Error(err, "response getter is not set")
-		} else if r, err := respGetter.GetJSONRPCResponse(); err != nil {
-			log.Error(err, "could not get JSON-RPC response")
-		} else {
-			webhookPayload.MCPResponse = r
-		}
 
 		log.Info("webhook payload assembled", "payload", webhookPayload)
 
