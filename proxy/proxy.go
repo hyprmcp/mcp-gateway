@@ -25,7 +25,7 @@ func NewProxyHandler(config *config.Proxy) http.Handler {
 			r.Out.Host = ""
 		},
 		Transport: &mcpAwareTransport{
-			config: config.Webhook,
+			config: config,
 		},
 	}
 }

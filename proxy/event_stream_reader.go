@@ -45,7 +45,14 @@ func (rw *eventStreamReader) Read(p []byte) (n int, err error) {
 			case strings.HasPrefix(line, "event:"):
 				event.Event = strings.TrimSpace(strings.TrimPrefix(line, "event:"))
 			case strings.HasPrefix(line, "data:"):
-				event.Data = strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+				// When the EventSource receives multiple consecutive lines that begin with data:, it concatenates them, inserting
+				// a newline character between each one. Trailing newlines are removed.
+				dataLine := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+				if event.Data == "" {
+					event.Data = dataLine
+				} else {
+					event.Data += "\n" + dataLine
+				}
 			case strings.HasPrefix(line, "id:"):
 				event.ID = strings.TrimSpace(strings.TrimPrefix(line, "id:"))
 			case strings.HasPrefix(line, "retry:"):
