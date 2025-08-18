@@ -5,7 +5,7 @@ import (
 
 	_ "crypto/sha256"
 
-	"github.com/jetski-sh/mcp-proxy/cmd"
+	"github.com/jetski-sh/mcp-gateway/cmd"
 )
 
 func main() {

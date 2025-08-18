@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/jetski-sh/mcp-proxy/jsonrpc"
+	"github.com/jetski-sh/mcp-gateway/jsonrpc"
 )
 
 type requestGetterWriter interface {

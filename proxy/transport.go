@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jetski-sh/mcp-proxy/config"
-	"github.com/jetski-sh/mcp-proxy/log"
-	"github.com/jetski-sh/mcp-proxy/oauth"
-	"github.com/jetski-sh/mcp-proxy/webhook"
+	"github.com/jetski-sh/mcp-gateway/config"
+	"github.com/jetski-sh/mcp-gateway/log"
+	"github.com/jetski-sh/mcp-gateway/oauth"
+	"github.com/jetski-sh/mcp-gateway/webhook"
 	"github.com/opencontainers/go-digest"
 )
 
