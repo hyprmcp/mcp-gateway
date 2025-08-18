@@ -16,10 +16,10 @@ COPY oauth/ oauth/
 COPY proxy/ proxy/
 COPY webhook/ webhook/
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
-    go build -a -o mcp-proxy -ldflags="-s -w" .
+    go build -a -o mcp-gateway -ldflags="-s -w" .
 
 FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /
 COPY --from=builder /workspace/mcp-proxy .
 USER 65532:65532
-ENTRYPOINT [ "/mcp-proxy" ]
+ENTRYPOINT [ "/mcp-gateway" ]
