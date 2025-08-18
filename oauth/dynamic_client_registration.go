@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/dexidp/dex/api/v2"
-	"github.com/jetski-sh/mcp-proxy/config"
-	"github.com/jetski-sh/mcp-proxy/log"
+	"github.com/jetski-sh/mcp-gateway/config"
+	"github.com/jetski-sh/mcp-gateway/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

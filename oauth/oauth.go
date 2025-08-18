@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/httprate"
-	"github.com/jetski-sh/mcp-proxy/config"
+	"github.com/jetski-sh/mcp-gateway/config"
 	"github.com/lestrrat-go/httprc/v3"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/lestrrat-go/jwx/v3/jwt"

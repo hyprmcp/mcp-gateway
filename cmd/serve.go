@@ -8,10 +8,10 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-chi/cors"
-	"github.com/jetski-sh/mcp-proxy/config"
-	"github.com/jetski-sh/mcp-proxy/log"
-	"github.com/jetski-sh/mcp-proxy/oauth"
-	"github.com/jetski-sh/mcp-proxy/proxy"
+	"github.com/jetski-sh/mcp-gateway/config"
+	"github.com/jetski-sh/mcp-gateway/log"
+	"github.com/jetski-sh/mcp-gateway/oauth"
+	"github.com/jetski-sh/mcp-gateway/proxy"
 	"github.com/spf13/cobra"
 )
 
