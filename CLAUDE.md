@@ -31,13 +31,13 @@ docker-compose up
 
 ## Architecture Overview
 
-MCP-Proxy is an HTTP reverse proxy for MCP (Model Context Protocol) servers with OAuth authentication and webhook-based observability.
+MCP-Gateway is an HTTP reverse proxy for MCP (Model Context Protocol) servers with OAuth authentication and webhook-based observability.
 
 ### Key Components
 
 1. **HTTP Server** (`cmd/serve.go`): Cobra CLI with hot-reloading config via fsnotify
 2. **OAuth Manager** (`oauth/`): JWT validation using JWK sets, integrates with Dex identity provider
-3. **Proxy Handler** (`proxy/`): 
+3. **Proxy Handler** (`proxy/`):
    - Reverse proxy with MCP-aware transport
    - Intercepts JSON-RPC messages for session tracking
    - Supports SSE (Server-Sent Events) for streaming

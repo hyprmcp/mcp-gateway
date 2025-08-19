@@ -20,6 +20,6 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
 
 FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /
-COPY --from=builder /workspace/mcp-proxy .
+COPY --from=builder /workspace/mcp-gateway .
 USER 65532:65532
 ENTRYPOINT [ "/mcp-gateway" ]
