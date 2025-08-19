@@ -1,3 +1,4 @@
-*.secret.env
 .idea
 *.iml
+
+config.yaml
