@@ -2,9 +2,10 @@ name: Build docker image
 on:
   push:
     branches:
-      - "*"
+      - main
     tags:
       - "*"
+  pull_request:
 
 jobs:
   build:
