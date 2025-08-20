@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-chi/cors"
@@ -102,8 +103,13 @@ func WatchConfigChanges(path string, callback func(*config.Config)) error {
 
 	defer func() { _ = watcher.Close() }()
 
-	if err := watcher.Add(path); err != nil {
-		return err
+	// We watch the parent directory of the config file, rather than just the file itself, because Kubernetes uses
+	// symlinks when mounting ConfigMaps/Secrets and just watching the file doesn't work well in those cases.
+	fileDir := filepath.Dir(path)
+	fileName := filepath.Base(path)
+
+	if err := watcher.Add(fileDir); err != nil {
+		return fmt.Errorf("failed to watch directory %s: %w", fileDir, err)
 	}
 
 	for {
@@ -118,16 +124,15 @@ func WatchConfigChanges(path string, callback func(*config.Config)) error {
 				return nil
 			}
 
-			if event.Op != fsnotify.Rename && event.Op != fsnotify.Write {
-				continue
-			}
+			// Check if the event is for our config file
+			if filepath.Base(event.Name) == fileName {
+				log.Root().Info("starting config reload", "op", event.Op, "path", event.Name)
 
-			log.Root().Info("starting config reload", "op", event.Op, "path", path)
-
-			if cfg, err := config.ParseFile(path); err != nil {
-				log.Root().Error(err, "config reload error", "op", event.Op)
-			} else {
-				callback(cfg)
+				if cfg, err := config.ParseFile(path); err != nil {
+					log.Root().Error(err, "config reload error", "event", event)
+				} else {
+					callback(cfg)
+				}
 			}
 		}
 	}
