@@ -1,0 +1,13 @@
+host: http://localhost:9000/
+authorization:
+  server: http://localhost:5556/
+  serverMetadataProxyEnabled: true
+  dynamicClientRegistrationEnabled: true
+dexGRPCClient:
+  addr: localhost:5557
+proxy:
+  - path: /who-am-i/mcp
+    http:
+      url: http://localhost:3000/mcp/
+    authentication:
+      enabled: true

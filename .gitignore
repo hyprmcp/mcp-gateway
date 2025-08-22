@@ -2,3 +2,6 @@
 *.iml
 
 config.yaml
+!examples/**/config.yaml
+
+*.secret.env

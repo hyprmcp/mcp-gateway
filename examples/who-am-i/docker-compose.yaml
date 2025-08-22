@@ -1,0 +1,69 @@
+name: who-am-i-gateway
+
+services:
+  dex:
+    image: ghcr.io/dexidp/dex:v2.43.1-alpine
+    command: ["dex", "serve", "/config.yaml"]
+    ports:
+      - 5556:5556
+      - 5557:5557
+    healthcheck:
+      test: wget http://localhost:5556/.well-known/openid-configuration -O -
+      interval: 5s
+      start_period: 10s
+      start_interval: 1s
+    configs:
+      - source: config.yaml
+        target: /config.yaml
+    env_file:
+      - .dex.secret.env
+
+  gateway:
+    image: ghcr.io/jetski-sh/mcp-gateway:0.1.0-alpha.6
+    command: ["serve", "--config", "/opt/config.yaml"]
+    # ports:
+    #   - 9000:9000
+    volumes:
+      - type: bind
+        source: config.yaml
+        target: /opt/config.yaml
+        read_only: true
+    depends_on:
+      dex:
+        condition: service_healthy
+        required: true
+    network_mode: host
+
+  who-am-i:
+    image: ghcr.io/hyprmcp/mcp-who-am-i:0.1.0
+    ports:
+      - 3000:3000
+
+configs:
+  config.yaml:
+    content: |
+      issuer: http://localhost:5556
+      web:
+        http: 0.0.0.0:5556
+        allowedOrigins: ['*']
+      grpc:
+        addr: 0.0.0.0:5557
+      storage:
+        type: memory
+      oauth2:
+        skipApprovalScreen: true
+      enablePasswordDB: true
+      staticPasswords:
+        - email: "admin@example.com"
+          # bcrypt hash of the string "password" for user admin: $(echo password | htpasswd -BinC 10 admin | cut -d: -f2)
+          hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+          username: "admin"
+          userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+      connectors:
+      - type: github
+        id: github
+        name: GitHub
+        config:
+          clientID: {{ .Env.GITHUB_CLIENT_ID }}
+          clientSecret: {{ .Env.GITHUB_CLIENT_SECRET }}
+          redirectURI: http://localhost:5556/callback
