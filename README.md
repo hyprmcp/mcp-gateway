@@ -1,4 +1,4 @@
-# Hyper MCP Gateway
+# Hypr MCP Gateway
 
 Hypr MCP Gateway featuring 1-click plug-in OAuth authorization incl. dynamic client registration
 and MCP prompt analytics for streamable HTTP MCP server.
