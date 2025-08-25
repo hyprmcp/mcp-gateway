@@ -11,22 +11,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 mise run serve
 ```
 
-### Code Maintenance
-```bash
-# Tidy dependencies
-mise run tidy
-
-# Run linter
-mise run lint
-```
-
 ### Development Setup
 ```bash
 # Install development tools (requires mise)
 mise install
 
-# Run with docker-compose (includes weather-mcp service)
-docker-compose up
+# Run with docker compose (includes weather-mcp service)
+docker compose up
 ```
 
 ## Architecture Overview
@@ -43,23 +34,6 @@ MCP-Gateway is an HTTP reverse proxy for MCP (Model Context Protocol) servers wi
    - Supports SSE (Server-Sent Events) for streaming
 4. **Webhook System** (`webhook/`): Async notifications with full request/response context
 
-### Request Flow
-1. Client request → OAuth validation (if enabled for route)
-2. Reverse proxy to upstream MCP server
-3. JSON-RPC message interception and session tracking
-4. Async webhook notification
-5. Response to client
-
-### Configuration Structure
-The server reads YAML config (see `config/config.go` for schema):
-- `host`: Public URL of the proxy
-- `authorization`: OAuth server settings
-- `dexGRPCClient`: Dex integration for dynamic client registration
-- `proxy`: Array of proxy routes with:
-  - `path`: URL path to expose
-  - `http.url`: Upstream MCP server URL
-  - `webhook.url`: Webhook endpoint for notifications
-  - `authentication.enabled`: Per-route auth toggle
 
 ### Important Design Patterns
 - **Config Hot-Reload**: Uses fsnotify to watch config file changes
