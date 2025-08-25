@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/jetski-sh/mcp-gateway/config"
-	"github.com/jetski-sh/mcp-gateway/log"
+	"github.com/hyprmcp/mcp-gateway/config"
+	"github.com/hyprmcp/mcp-gateway/log"
 	"go.uber.org/multierr"
 )
 

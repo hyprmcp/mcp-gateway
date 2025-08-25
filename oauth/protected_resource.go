@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/jetski-sh/mcp-gateway/config"
-	"github.com/jetski-sh/mcp-gateway/log"
+	"github.com/hyprmcp/mcp-gateway/config"
+	"github.com/hyprmcp/mcp-gateway/log"
 )
 
 const ProtectedResourcePath = "/.well-known/oauth-protected-resource"
