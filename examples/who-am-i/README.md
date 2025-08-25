@@ -30,7 +30,7 @@ You'll need the client ID and client secret for starting the server.
 
 ### Starting the server
 
-Make sure to clone the repository locally: `git clone git@github.com:hyprmcp/mcp-gateway.git`
+Make sure to clone the repository locally: `git clone https://github.com/hyprmcp/mcp-gateway.git`
 
 Make sure to change directory into `cd mcp-gateway/examples/who-am-i`.
 
