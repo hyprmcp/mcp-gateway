@@ -53,7 +53,7 @@ You can either log in with your GitHub account or username password authenticati
 
 ## Hypr MCP Cloud
 
-We also provide a hosted version of our MCP Gateway via Hypr MCP cloud for MCP server hosting,
+We also provide fully-managed MCP server and gateway hosting at Hypr MCP cloud, featuring
 1-click OAuth authorization and [MCP analytics](https://hyprmcp.com/mcp-analytics/).
 
 **Make sure to join our waitlist for early access:**
