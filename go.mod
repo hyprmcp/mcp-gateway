@@ -16,7 +16,7 @@ require (
 	github.com/sourcegraph/jsonrpc2 v0.2.1
 	github.com/spf13/cobra v1.9.1
 	go.uber.org/multierr v1.11.0
-	google.golang.org/grpc v1.73.0
+	google.golang.org/grpc v1.75.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
