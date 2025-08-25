@@ -15,9 +15,6 @@ mise run serve
 ```bash
 # Install development tools (requires mise)
 mise install
-
-# Run with docker compose (includes weather-mcp service)
-docker compose up
 ```
 
 ## Architecture Overview
