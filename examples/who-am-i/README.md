@@ -58,5 +58,4 @@ We also provide fully-managed MCP server and gateway hosting at Hypr MCP cloud, 
 
 **Make sure to join our waitlist for early access:**
 
-<kbd>[**Join our waitlist**](https://hyprmcp.com/waitlist/)</kbd>
-
+# <kbd>[**Join our waitlist**](https://hyprmcp.com/waitlist/)</kbd>
