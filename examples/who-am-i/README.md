@@ -1,6 +1,6 @@
 # Hypr MCP Gateway Demo: "MCP, Who Am I?"
 
-This demo showcases a complete functional setup of the MCP Gateway including an instance of the Dex IdP used as
+This demo showcases a complete and functional setup of the MCP Gateway including an instance of the Dex IdP used as
 authorization server, as well as an upstream MCP server that returns information about the JWT that was used for
 authentication.
 The upstream MCP server is called "MCP, Who am I?" and can be found on GitHub: http://github.com/hyprmcp/mcp-who-am-i/
