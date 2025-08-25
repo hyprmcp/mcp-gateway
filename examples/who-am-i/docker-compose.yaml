@@ -19,7 +19,7 @@ services:
       - .dex.secret.env
 
   gateway:
-    image: ghcr.io/jetski-sh/mcp-gateway:0.1.0-alpha.6
+    image: ghcr.io/hyprmcp/mcp-gateway:0.1.0-alpha.6 # x-release-please-version
     command: ["serve", "--config", "/opt/config.yaml"]
     # ports:
     #   - 9000:9000
