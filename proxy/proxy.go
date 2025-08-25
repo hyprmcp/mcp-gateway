@@ -5,7 +5,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/jetski-sh/mcp-gateway/config"
+	"github.com/hyprmcp/mcp-gateway/config"
 )
 
 func NewProxyHandler(config *config.Proxy) http.Handler {
