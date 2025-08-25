@@ -15,6 +15,8 @@ Also make sure to copy the example config to the root folder:
 cp examples/config.yaml config.yaml
 ```
 
+Make sure to have an instance of Dex running locally.
+
 Start this project with:
 
 ```shell

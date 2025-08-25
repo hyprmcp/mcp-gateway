@@ -3,7 +3,7 @@ package webhook
 import (
 	"time"
 
-	"github.com/jetski-sh/mcp-gateway/jsonrpc"
+	"github.com/hyprmcp/mcp-gateway/jsonrpc"
 	"github.com/opencontainers/go-digest"
 )
 

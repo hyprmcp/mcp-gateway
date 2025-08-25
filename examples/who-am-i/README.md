@@ -1,8 +1,9 @@
-# Demo: "MCP, Who Am I?"
+# Hypr MCP Gateway Demo: "MCP, Who Am I?"
 
-This demo showcases a completele functional setup of the MCP Gateway including an instance of the Dex IdP used as
+This demo showcases a complete functional setup of the MCP Gateway including an instance of the Dex IdP used as
 authorization server, as well as an upstream MCP server that returns information about the JWT that was used for
 authentication.
+The upstream MCP server is called "MCP, Who am I?" and can be found on GitHub: http://github.com/hyprmcp/mcp-who-am-i/
 
 ## Setup
 
@@ -12,12 +13,31 @@ Please ensure that you have a working Docker installation.
 ### GitHub As Federated OIDC Provider
 
 First, create a new OAuth application on GitHub here: https://github.com/settings/applications/new
-Use `http://localhost:5556/callback` as redirect URI.
-Next, copy the file `.dex.secret.env.template` to `.dex.secret.env` and fill it with the client ID and secret of your new OAuth application.
+
+
+| Field                      | Value                            |
+|----------------------------|----------------------------------|
+| Application name           | Hypr MCP Auth Demo               |
+| Homepage URL               | https://hyprmcp.com              |
+| Application description    | -                                |
+| Authorization callback URL | `http://localhost:5556/callback` |
+| Enable Device Flow         | `false` (unchecked)              |
+
+
+After Creating the application make sure to `Generate a new client secret`.
+
+You'll need the client ID and client secret for starting the server.
 
 ### Starting the server
 
-You can start all components with Docker Compose:
+Make sure to clone the repository locally: `git clone git@github.com:hyprmcp/mcp-gateway.git`
+
+Make sure to change directory into `cd mcp-gateway/examples/who-am-i`.
+
+Next, copy the file `.dex.secret.env.template` to `.dex.secret.env` and fill it with the client ID and client
+secret of your new OAuth application.
+
+Now you can start all components with Docker Compose:
 
 ```shell
 docker compose up -d
@@ -26,4 +46,17 @@ docker compose up -d
 ## Testing
 
 Use your favourite MCP client to connect to the MCP server at `http://localhost:9000/who-am-i/mcp`.
-You can also use the MCP inspector tool by runnign `npx @modelcontextprotocol/inspector`.
+You can also use the MCP inspector tool by running `npx @modelcontextprotocol/inspector`.
+
+You can either log in with your GitHub account or username password authentication with
+`admin@example.com` and `password`.
+
+## Hypr MCP Cloud
+
+We also provide a hosted version of our MCP Gateway via Hypr MCP cloud for MCP server hosting,
+1-click OAuth authorization and [MCP analytics](https://hyprmcp.com/mcp-analytics/).
+
+**Make sure to join our waitlist for early access:**
+
+[<kbd>**Join our waitlist**</kbd>](https://hyprmcp.com/waitlist/)
+

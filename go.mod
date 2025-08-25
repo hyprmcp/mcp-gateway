@@ -1,4 +1,4 @@
-module github.com/jetski-sh/mcp-gateway
+module github.com/hyprmcp/mcp-gateway
 
 go 1.24.5
 
