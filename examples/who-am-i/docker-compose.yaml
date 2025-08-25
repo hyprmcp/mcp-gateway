@@ -21,8 +21,8 @@ services:
   gateway:
     image: ghcr.io/hyprmcp/mcp-gateway:0.1.0 # x-release-please-version
     command: ["serve", "--config", "/opt/config.yaml"]
-    # ports:
-    #   - 9000:9000
+    ports:
+     - 9000:9000
     volumes:
       - type: bind
         source: config.yaml
