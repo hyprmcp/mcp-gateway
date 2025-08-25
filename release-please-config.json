@@ -9,6 +9,7 @@
       "draft": false,
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": false,
+      "bootstrap-sha": "5efee077429453c76772f379666241b38fbba7ad",
       "extra-files": ["examples/who-am-i/docker-compose.yaml"],
       "changelog-sections": [
         {
