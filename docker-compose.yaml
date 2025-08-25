@@ -1,6 +1,6 @@
 services:
   weather-mcp:
-    image: ghcr.io/jetski-sh/weather-mcp-python:main
+    image: ghcr.io/hyprmcp/weather-mcp-python:main
     ports:
       - 8000:8000
   # dex:
