@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.1](https://github.com/hyprmcp/mcp-gateway/compare/0.1.0...0.1.1) (2025-08-26)
+
+
+### Other
+
+* add auth proxy listener for advanced use cases ([#28](https://github.com/hyprmcp/mcp-gateway/issues/28)) ([4d7aa06](https://github.com/hyprmcp/mcp-gateway/commit/4d7aa06d50ee0f9f2e7d227cd913c3ab79e4b484))
+
+
+### Docs
+
+* change to https github url ([d68df0a](https://github.com/hyprmcp/mcp-gateway/commit/d68df0a7ff6b4d43da13884bf5263f9ee033112d))
+* explicitly expose port 9000 for the gateway demo ([a985680](https://github.com/hyprmcp/mcp-gateway/commit/a98568038da502e9352b8e54098c7b33a9abda00))
+* increase waitlist button size ([30b1d8a](https://github.com/hyprmcp/mcp-gateway/commit/30b1d8ad03facd53be21b8fdf254e9a91f80bf07))
+
 ## [0.1.0](https://github.com/hyprmcp/mcp-gateway/compare/0.1.0-alpha.6...0.1.0) (2025-08-25)
 
 
