@@ -67,6 +67,7 @@ func (mgr *Manager) Handler(next http.Handler) http.Handler {
 		if err != nil {
 			metadataURL, _ := url.Parse(mgr.config.Host.String())
 			metadataURL.Path = ProtectedResourcePath
+			metadataURL = metadataURL.JoinPath(r.URL.Path)
 			w.Header().Set(
 				"WWW-Authenticate",
 				fmt.Sprintf(`Bearer resource_metadata="%s"`, metadataURL.String()),
