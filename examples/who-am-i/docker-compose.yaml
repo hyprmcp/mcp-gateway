@@ -6,7 +6,6 @@ services:
     command: ["dex", "serve", "/config.yaml"]
     ports:
       - 5556:5556
-      - 5557:5557
     healthcheck:
       test: wget http://localhost:5556/.well-known/openid-configuration -O -
       interval: 5s
@@ -20,9 +19,16 @@ services:
 
   gateway:
     image: ghcr.io/hyprmcp/mcp-gateway:0.1.0 # x-release-please-version
-    command: ["serve", "--config", "/opt/config.yaml"]
+    command:
+      [
+        "serve",
+        "--config",
+        "/opt/config.yaml",
+        "--auth-proxy-addr",
+        "localhost:5556",
+      ]
     ports:
-     - 9000:9000
+      - 9000:9000
     volumes:
       - type: bind
         source: config.yaml
@@ -32,7 +38,6 @@ services:
       dex:
         condition: service_healthy
         required: true
-    network_mode: host
 
   who-am-i:
     image: ghcr.io/hyprmcp/mcp-who-am-i:0.1.1

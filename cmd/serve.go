@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"path/filepath"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-chi/cors"
@@ -17,22 +20,40 @@ import (
 )
 
 type ServeOptions struct {
-	Config string
-	Addr   string
+	Config        string
+	Addr          string
+	AuthProxyAddr string
 }
 
 func BindServeOptions(cmd *cobra.Command, opts *ServeOptions) {
 	cmd.Flags().StringVarP(&opts.Config, "config", "c", "config.yaml", "Path to the configuration file")
 	cmd.Flags().StringVarP(&opts.Addr, "addr", "a", ":9000", "Address to listen on")
+	cmd.Flags().StringVar(&opts.AuthProxyAddr, "auth-proxy-addr", "", "Address to listen on with the authentication server proxy (advanced feature)")
 }
 
 func runServe(ctx context.Context, opts ServeOptions) error {
+	done := make(chan error)
+
 	cfg, err := config.ParseFile(opts.Config)
 	if err != nil {
 		return err
 	}
 
 	log.Get(ctx).Info("Loaded configuration", "config", cfg)
+
+	if opts.AuthProxyAddr != "" {
+		go func() {
+			log.Get(ctx).Info("starting auth proxy server", "addr", opts.AuthProxyAddr)
+			authUrl, err := url.Parse(cfg.Authorization.Server)
+			if err != nil {
+				done <- fmt.Errorf("auth proxy serve failed: %w", err)
+			} else if err := http.ListenAndServe(opts.AuthProxyAddr, &httputil.ReverseProxy{Rewrite: proxy.RewriteHostFunc(authUrl)}); !errors.Is(err, http.ErrServerClosed) {
+				done <- fmt.Errorf("auth proxy serve failed: %w", err)
+			} else {
+				done <- nil
+			}
+		}()
+	}
 
 	handler := &delegateHandler{}
 
@@ -59,19 +80,24 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 		}
 	}()
 
-	log.Get(ctx).Info("Starting server", "addr", opts.Addr)
+	go func() {
+		log.Get(ctx).Info("Starting server", "addr", opts.Addr)
+		if err := http.ListenAndServe(opts.Addr, cors.AllowAll().Handler(handler)); !errors.Is(err, http.ErrServerClosed) {
+			done <- fmt.Errorf("serve failed: %w", err)
+		} else {
+			done <- nil
+		}
+	}()
 
-	if err := http.ListenAndServe(opts.Addr, cors.AllowAll().Handler(handler)); !errors.Is(err, http.ErrServerClosed) {
-		return fmt.Errorf("serve failed: %w", err)
-	}
-
-	return nil
+	return <-done
 }
 
 func newRouter(ctx context.Context, config *config.Config) (http.Handler, error) {
 	mux := http.NewServeMux()
 
-	oauthManager, err := oauth.NewManager(ctx, config)
+	newMgrCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	oauthManager, err := oauth.NewManager(newMgrCtx, config)
 	if err != nil {
 		return nil, err
 	}
