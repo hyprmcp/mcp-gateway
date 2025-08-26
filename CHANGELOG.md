@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.2](https://github.com/hyprmcp/mcp-gateway/compare/0.1.1...0.1.2) (2025-08-26)
+
+
+### Bug Fixes
+
+* add request path to metadata and protected resource path ([#31](https://github.com/hyprmcp/mcp-gateway/issues/31)) ([cf4b2c0](https://github.com/hyprmcp/mcp-gateway/commit/cf4b2c04d7913c6ac66bfd4211b5983e33f3324c))
+
+
+### Docs
+
+* improve github link in example docs ([8fe53f6](https://github.com/hyprmcp/mcp-gateway/commit/8fe53f6b71072b36fd3d26e0974fee193bba8ab9))
+
 ## [0.1.1](https://github.com/hyprmcp/mcp-gateway/compare/0.1.0...0.1.1) (2025-08-26)
 
 
