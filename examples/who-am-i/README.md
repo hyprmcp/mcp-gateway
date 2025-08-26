@@ -30,9 +30,17 @@ You'll need the client ID and client secret for starting the server.
 
 ### Starting the server
 
-Make sure to clone the repository locally: `git clone https://github.com/hyprmcp/mcp-gateway.git`
+Make sure to clone the repository locally:
 
-Make sure to change directory into `cd mcp-gateway/examples/who-am-i`.
+```shell
+git clone https://github.com/hyprmcp/mcp-gateway.git
+````
+
+Make sure to change into the who-am-i directory:
+
+```shell
+cd mcp-gateway/examples/who-am-i
+````
 
 Next, copy the file `.dex.secret.env.template` to `.dex.secret.env` and fill it with the client ID and client
 secret of your new OAuth application.
@@ -50,6 +58,10 @@ You can also use the MCP inspector tool by running `npx @modelcontextprotocol/in
 
 You can either log in with your GitHub account or username password authentication with
 `admin@example.com` and `password`.
+
+
+If you want to bypass the authentication proxy you can directly call the "Who am I?" MCP server
+at `http://localhost:3000/mcp` and will see that the request is not authenticated.
 
 ## Hypr MCP Cloud
 
