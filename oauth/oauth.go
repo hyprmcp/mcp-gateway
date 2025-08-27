@@ -22,13 +22,15 @@ type Manager struct {
 }
 
 func NewManager(ctx context.Context, config *config.Config) (*Manager, error) {
-	if cache, err := jwk.NewCache(ctx, httprc.NewClient()); err != nil {
+	if cache, err := jwk.NewCache(context.Background(), httprc.NewClient()); err != nil {
 		return nil, fmt.Errorf("jwk cache creation error: %w", err)
 	} else if meta, err := GetMedatata(config.Authorization.Server); err != nil {
 		return nil, fmt.Errorf("authorization server metadata error: %w", err)
 	} else if jwksURI, ok := meta["jwks_uri"].(string); !ok {
 		return nil, errors.New("no jwks_uri")
-	} else if err := cache.Register(ctx, jwksURI); err != nil {
+	} else if err := cache.Register(ctx, jwksURI,
+		jwk.WithMinInterval(10*time.Second),
+		jwk.WithMaxInterval(5*time.Minute)); err != nil {
 		return nil, fmt.Errorf("jwks registration error: %w", err)
 	} else if _, err := cache.Refresh(ctx, jwksURI); err != nil {
 		return nil, fmt.Errorf("jwks refresh error: %w", err)
