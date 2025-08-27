@@ -42,8 +42,8 @@ func NewManager(ctx context.Context, config *config.Config) (*Manager, error) {
 	} else if err := cache.Register(
 		timeoutCtx,
 		jwksURI,
-		jwk.WithMinInterval(1*time.Second),
-		jwk.WithMaxInterval(5*time.Second),
+		jwk.WithMinInterval(10*time.Second),
+		jwk.WithMaxInterval(5*time.Minute),
 	); err != nil {
 		return nil, fmt.Errorf("jwks registration error: %w", err)
 	} else if _, err := cache.Refresh(timeoutCtx, jwksURI); err != nil {
