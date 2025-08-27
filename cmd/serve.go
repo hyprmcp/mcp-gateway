@@ -8,10 +8,10 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"path/filepath"
-	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-chi/cors"
+	"github.com/go-logr/stdr"
 	"github.com/hyprmcp/mcp-gateway/config"
 	"github.com/hyprmcp/mcp-gateway/log"
 	"github.com/hyprmcp/mcp-gateway/oauth"
@@ -23,16 +23,20 @@ type ServeOptions struct {
 	Config        string
 	Addr          string
 	AuthProxyAddr string
+	Verbosity     int
 }
 
 func BindServeOptions(cmd *cobra.Command, opts *ServeOptions) {
 	cmd.Flags().StringVarP(&opts.Config, "config", "c", "config.yaml", "Path to the configuration file")
 	cmd.Flags().StringVarP(&opts.Addr, "addr", "a", ":9000", "Address to listen on")
 	cmd.Flags().StringVar(&opts.AuthProxyAddr, "auth-proxy-addr", "", "Address to listen on with the authentication server proxy (advanced feature)")
+	cmd.Flags().IntVarP(&opts.Verbosity, "verbosity", "v", 0, "Set the logging verbosity; greater number means more logging")
 }
 
 func runServe(ctx context.Context, opts ServeOptions) error {
 	done := make(chan error)
+
+	stdr.SetVerbosity(opts.Verbosity)
 
 	cfg, err := config.ParseFile(opts.Config)
 	if err != nil {
@@ -57,7 +61,10 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 
 	handler := &delegateHandler{}
 
-	if h, err := newRouter(ctx, cfg); err != nil {
+	routerCtx, routerCancel := context.WithCancel(ctx)
+	defer func() { routerCancel() }()
+
+	if h, err := newRouter(routerCtx, cfg); err != nil {
 		return err
 	} else {
 		handler.delegate = h
@@ -67,10 +74,15 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 		err := WatchConfigChanges(
 			opts.Config,
 			func(c *config.Config) {
+				newRouterCtx, newRouterCancel := context.WithCancel(ctx)
 				log.Get(ctx).Info("Reconfiguring server after config change...")
-				if h, err := newRouter(ctx, c); err != nil {
+				if h, err := newRouter(newRouterCtx, c); err != nil {
+					newRouterCancel()
 					log.Get(ctx).Error(err, "failed to reload server")
 				} else {
+					routerCancel()
+					routerCancel = newRouterCancel
+					routerCtx = newRouterCtx
 					handler.delegate = h
 				}
 			},
@@ -95,9 +107,7 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 func newRouter(ctx context.Context, config *config.Config) (http.Handler, error) {
 	mux := http.NewServeMux()
 
-	newMgrCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-	oauthManager, err := oauth.NewManager(newMgrCtx, config)
+	oauthManager, err := oauth.NewManager(ctx, config)
 	if err != nil {
 		return nil, err
 	}
