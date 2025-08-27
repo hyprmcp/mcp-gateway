@@ -1,6 +1,7 @@
 host: http://localhost:9000/
 authorization:
   server: http://dex:5556/
+  authorizationProxyEnabled: true
   serverMetadataProxyEnabled: true
   dynamicClientRegistrationEnabled: true
 dexGRPCClient:

@@ -56,6 +56,14 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 		}
 	}
 
+	if mgr.config.Authorization.AuthorizationProxyEnabled {
+		if handler, err := NewAuthorizationHandler(mgr.config, mgr.authServerMeta); err != nil {
+			return err
+		} else {
+			mux.Handle(AuthorizationPath, handler)
+		}
+	}
+
 	return nil
 }
 
