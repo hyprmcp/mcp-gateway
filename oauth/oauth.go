@@ -11,7 +11,10 @@ import (
 
 	"github.com/go-chi/httprate"
 	"github.com/hyprmcp/mcp-gateway/config"
+	"github.com/hyprmcp/mcp-gateway/log"
 	"github.com/lestrrat-go/httprc/v3"
+	"github.com/lestrrat-go/httprc/v3/errsink"
+	"github.com/lestrrat-go/httprc/v3/tracesink"
 	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/lestrrat-go/jwx/v3/jwt"
 )
@@ -23,15 +26,28 @@ type Manager struct {
 }
 
 func NewManager(ctx context.Context, config *config.Config) (*Manager, error) {
-	if cache, err := jwk.NewCache(ctx, httprc.NewClient()); err != nil {
+	log := log.Get(ctx)
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	if cache, err := jwk.NewCache(ctx, httprc.NewClient(
+		httprc.WithTraceSink(tracesink.Func(func(ctx context.Context, s string) { log.V(1).Info(s) })),
+		httprc.WithErrorSink(errsink.NewFunc(func(ctx context.Context, err error) { log.V(1).Error(err, "httprc.NewClient error") })),
+	)); err != nil {
 		return nil, fmt.Errorf("jwk cache creation error: %w", err)
 	} else if meta, err := GetMedatata(config.Authorization.Server); err != nil {
 		return nil, fmt.Errorf("authorization server metadata error: %w", err)
 	} else if jwksURI, ok := meta["jwks_uri"].(string); !ok {
 		return nil, errors.New("no jwks_uri")
-	} else if err := cache.Register(ctx, jwksURI); err != nil {
+	} else if err := cache.Register(
+		timeoutCtx,
+		jwksURI,
+		jwk.WithMinInterval(10*time.Second),
+		jwk.WithMaxInterval(5*time.Minute),
+	); err != nil {
 		return nil, fmt.Errorf("jwks registration error: %w", err)
-	} else if _, err := cache.Refresh(ctx, jwksURI); err != nil {
+	} else if _, err := cache.Refresh(timeoutCtx, jwksURI); err != nil {
 		return nil, fmt.Errorf("jwks refresh error: %w", err)
 	} else if s, err := cache.CachedSet(jwksURI); err != nil {
 		return nil, fmt.Errorf("jwks cache set error: %w", err)
