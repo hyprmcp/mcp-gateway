@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/hyprmcp/mcp-gateway/compare/0.1.2...0.2.0) (2025-08-27)
+
+
+### Features
+
+* add authorization handler to inject openid scope if missing, return scope in DCR response ([#32](https://github.com/hyprmcp/mcp-gateway/issues/32)) ([e2978e9](https://github.com/hyprmcp/mcp-gateway/commit/e2978e912bc0c841be15318ad807af8def8e2068))
+
+
+### Bug Fixes
+
+* jwk refresh in background context and reduced min/max interval ([#33](https://github.com/hyprmcp/mcp-gateway/issues/33)) ([c92e2f2](https://github.com/hyprmcp/mcp-gateway/commit/c92e2f250584cd759e61786081f931f42e1cd450))
+
 ## [0.1.2](https://github.com/hyprmcp/mcp-gateway/compare/0.1.1...0.1.2) (2025-08-26)
 
 
