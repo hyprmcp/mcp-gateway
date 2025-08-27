@@ -17,8 +17,9 @@ import (
 )
 
 type Manager struct {
-	jwkSet jwk.Set
-	config *config.Config
+	jwkSet         jwk.Set
+	config         *config.Config
+	authServerMeta map[string]any
 }
 
 func NewManager(ctx context.Context, config *config.Config) (*Manager, error) {
@@ -35,7 +36,7 @@ func NewManager(ctx context.Context, config *config.Config) (*Manager, error) {
 	} else if s, err := cache.CachedSet(jwksURI); err != nil {
 		return nil, fmt.Errorf("jwks cache set error: %w", err)
 	} else {
-		return &Manager{jwkSet: s, config: config}, nil
+		return &Manager{jwkSet: s, config: config, authServerMeta: meta}, nil
 	}
 }
 
@@ -47,11 +48,19 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 	}
 
 	if mgr.config.Authorization.DynamicClientRegistrationEnabled {
-		if handler, err := NewDynamicClientRegistrationHandler(mgr.config); err != nil {
+		if handler, err := NewDynamicClientRegistrationHandler(mgr.config, mgr.authServerMeta); err != nil {
 			return err
 		} else {
 			rateLimiter := httprate.LimitByRealIP(3, 10*time.Minute)
 			mux.Handle(DynamicClientRegistrationPath, rateLimiter(handler))
+		}
+	}
+
+	if mgr.config.Authorization.AuthorizationProxyEnabled {
+		if handler, err := NewAuthorizationHandler(mgr.config, mgr.authServerMeta); err != nil {
+			return err
+		} else {
+			mux.Handle(AuthorizationPath, handler)
 		}
 	}
 

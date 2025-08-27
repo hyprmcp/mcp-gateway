@@ -4,6 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"net/http"
+	"slices"
+	"strings"
 
 	"github.com/dexidp/dex/api/v2"
 	"github.com/hyprmcp/mcp-gateway/config"
@@ -21,9 +23,10 @@ type ClientInformation struct {
 	ClientName            string   `json:"client_name,omitempty"`
 	RedirectURIs          []string `json:"redirect_uris"`
 	LogoURI               string   `json:"logo_uri,omitempty"`
+	Scope                 string   `json:"scope,omitempty"`
 }
 
-func NewDynamicClientRegistrationHandler(config *config.Config) (http.Handler, error) {
+func NewDynamicClientRegistrationHandler(config *config.Config, meta map[string]any) (http.Handler, error) {
 	grpcClient, err := grpc.NewClient(
 		config.DexGRPCClient.Addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -61,13 +64,19 @@ func NewDynamicClientRegistrationHandler(config *config.Config) (http.Handler, e
 		w.WriteHeader(http.StatusCreated)
 		w.Header().Set("Content-Type", "application/json")
 
-		err = json.NewEncoder(w).Encode(ClientInformation{
+		resp := ClientInformation{
 			ClientID:     clientResponse.Client.Id,
 			ClientSecret: clientResponse.Client.Secret,
 			ClientName:   clientResponse.Client.Name,
 			RedirectURIs: clientResponse.Client.RedirectUris,
 			LogoURI:      clientResponse.Client.LogoUrl,
-		})
+		}
+
+		if scopesSupported := getSupportedScopes(meta); len(scopesSupported) > 0 {
+			resp.Scope = strings.Join(scopesSupported, " ")
+		}
+
+		err = json.NewEncoder(w).Encode(resp)
 		if err != nil {
 			log.Get(r.Context()).Error(err, "Failed to encode response")
 		}
@@ -78,4 +87,19 @@ func NewDynamicClientRegistrationHandler(config *config.Config) (http.Handler, e
 
 func genRandom() string {
 	return rand.Text()
+}
+
+func getSupportedScopes(meta map[string]any) []string {
+	if scopesSupported, ok := meta["scopes_supported"].([]any); ok {
+		scopesSupportedStr := make([]string, 0, len(scopesSupported))
+		for _, v := range scopesSupported {
+			if s, ok := v.(string); ok {
+				scopesSupportedStr = append(scopesSupportedStr, s)
+			}
+		}
+
+		return slices.Clip(scopesSupportedStr)
+	}
+
+	return nil
 }

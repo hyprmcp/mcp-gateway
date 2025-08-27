@@ -22,12 +22,22 @@ func NewAuthorizationServerMetadataHandler(config *config.Config) http.Handler {
 			http.Error(w, "Failed to retrieve authorization server metadata", http.StatusInternalServerError)
 		}
 
-		if _, ok := metadata["registration_endpoint"]; !ok {
-			registrationURL, _ := url.Parse(config.Host.String())
-			registrationURL.Path = DynamicClientRegistrationPath
-			metadata["registration_endpoint"] = registrationURL.String()
-			log.Get(r.Context()).Info("Adding registration endpoint to authorization server metadata",
-				"url", metadata["registration_endpoint"])
+		if config.Authorization.DynamicClientRegistrationEnabled {
+			if _, ok := metadata["registration_endpoint"]; !ok {
+				registrationURI, _ := url.Parse(config.Host.String())
+				registrationURI.Path = DynamicClientRegistrationPath
+				metadata["registration_endpoint"] = registrationURI.String()
+				log.Get(r.Context()).Info("Adding registration endpoint to authorization server metadata",
+					"url", metadata["registration_endpoint"])
+			}
+		}
+
+		if config.Authorization.AuthorizationProxyEnabled {
+			authorizationURI, _ := url.Parse(config.Host.String())
+			authorizationURI.Path = AuthorizationPath
+			metadata["authorization_endpoint"] = authorizationURI.String()
+			log.Get(r.Context()).Info("Adding authorization endpoint to authorization server metadata",
+				"url", metadata["authorization_endpoint"])
 		}
 
 		w.Header().Set("Content-Type", "application/json")

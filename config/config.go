@@ -20,6 +20,7 @@ type Config struct {
 type Authorization struct {
 	Server                           string `yaml:"server" json:"server"`
 	ServerMetadataProxyEnabled       bool   `yaml:"serverMetadataProxyEnabled" json:"serverMetadataProxyEnabled"`
+	AuthorizationProxyEnabled        bool   `yaml:"authorizationProxyEnabled" json:"authorizationProxyEnabled"`
 	DynamicClientRegistrationEnabled bool   `yaml:"dynamicClientRegistrationEnabled" json:"dynamicClientRegistrationEnabled"`
 }
 
