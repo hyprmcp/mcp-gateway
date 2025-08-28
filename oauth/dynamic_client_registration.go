@@ -54,6 +54,10 @@ func NewDynamicClientRegistrationHandler(config *config.Config, meta map[string]
 			Public:       true,
 		}
 
+		if !config.Authorization.GetDynamicClientRegistration().PublicClient {
+			client.Secret = genRandom()
+		}
+
 		clientResponse, err := dexClient.CreateClient(r.Context(), &api.CreateClientReq{Client: &client})
 		if err != nil {
 			log.Get(r.Context()).Error(err, "failed to create client")

@@ -63,7 +63,7 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 		mux.Handle(AuthorizationServerMetadataPath, NewAuthorizationServerMetadataHandler(mgr.config))
 	}
 
-	if mgr.config.Authorization.DynamicClientRegistrationEnabled {
+	if mgr.config.Authorization.GetDynamicClientRegistration().Enabled {
 		if handler, err := NewDynamicClientRegistrationHandler(mgr.config, mgr.authServerMeta); err != nil {
 			return err
 		} else {

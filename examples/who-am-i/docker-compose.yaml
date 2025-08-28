@@ -40,7 +40,7 @@ services:
         required: true
 
   who-am-i:
-    image: ghcr.io/hyprmcp/mcp-who-am-i:0.1.1
+    image: ghcr.io/hyprmcp/mcp-who-am-i:0.1.2
     ports:
       - 3000:3000
 

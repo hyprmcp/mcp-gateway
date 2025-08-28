@@ -22,7 +22,7 @@ func NewAuthorizationServerMetadataHandler(config *config.Config) http.Handler {
 			http.Error(w, "Failed to retrieve authorization server metadata", http.StatusInternalServerError)
 		}
 
-		if config.Authorization.DynamicClientRegistrationEnabled {
+		if config.Authorization.GetDynamicClientRegistration().Enabled {
 			if _, ok := metadata["registration_endpoint"]; !ok {
 				registrationURI, _ := url.Parse(config.Host.String())
 				registrationURI.Path = DynamicClientRegistrationPath
