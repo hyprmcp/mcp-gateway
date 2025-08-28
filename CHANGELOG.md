@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/hyprmcp/mcp-gateway/compare/0.2.0...0.2.1) (2025-08-28)
+
+
+### Other
+
+* add config for DCR public/private client ([#36](https://github.com/hyprmcp/mcp-gateway/issues/36)) ([282db47](https://github.com/hyprmcp/mcp-gateway/commit/282db47db602f3f48fcf773af29f3bc96a71ef47))
+
 ## [0.2.0](https://github.com/hyprmcp/mcp-gateway/compare/0.1.2...0.2.0) (2025-08-27)
 
 

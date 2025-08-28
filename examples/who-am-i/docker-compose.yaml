@@ -18,7 +18,7 @@ services:
       - .dex.secret.env
 
   gateway:
-    image: ghcr.io/hyprmcp/mcp-gateway:0.2.0 # x-release-please-version
+    image: ghcr.io/hyprmcp/mcp-gateway:0.2.1 # x-release-please-version
     command:
       [
         "serve",
