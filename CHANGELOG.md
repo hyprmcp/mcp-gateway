@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/hyprmcp/mcp-gateway/compare/0.2.1...0.2.2) (2025-08-29)
+
+
+### Bug Fixes
+
+* omit empty ClientSecret from DCR response ([#38](https://github.com/hyprmcp/mcp-gateway/issues/38)) ([0e3f7d7](https://github.com/hyprmcp/mcp-gateway/commit/0e3f7d7f252519d0cc134c00ae269d9555937d53))
+
 ## [0.2.1](https://github.com/hyprmcp/mcp-gateway/compare/0.2.0...0.2.1) (2025-08-28)
 
 
