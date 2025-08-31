@@ -25,6 +25,8 @@ github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/google/jsonschema-go v0.2.0 h1:Uh19091iHC56//WOsAd1oRg6yy1P9BpSvpjOL6RcjLQ=
 github.com/google/jsonschema-go v0.2.0/go.mod h1:r5quNTdLOYEz95Ru18zA0ydNbBuYoo9tgaYcxEYhJVE=
+github.com/google/jsonschema-go v0.2.1-0.20250825175020-748c325cec76 h1:mBlBwtDebdDYr+zdop8N62a44g+Nbv7o2KjWyS1deR4=
+github.com/google/jsonschema-go v0.2.1-0.20250825175020-748c325cec76/go.mod h1:r5quNTdLOYEz95Ru18zA0ydNbBuYoo9tgaYcxEYhJVE=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/gorilla/websocket v1.4.1 h1:q7AeDBpnBk8AogcD4DSag/Ukw/KV+YhzLj2bP5HvKCM=
@@ -47,6 +49,8 @@ github.com/lestrrat-go/option/v2 v2.0.0 h1:XxrcaJESE1fokHy3FpaQ/cXW8ZsIdWcdFzzLO
 github.com/lestrrat-go/option/v2 v2.0.0/go.mod h1:oSySsmzMoR0iRzCDCaUfsCzxQHUEuhOViQObyy7S6Vg=
 github.com/modelcontextprotocol/go-sdk v0.3.0 h1:/1XC6+PpdKfE4CuFJz8/goo0An31bu8n8G8d3BkeJoY=
 github.com/modelcontextprotocol/go-sdk v0.3.0/go.mod h1:71VUZVa8LL6WARvSgLJ7DMpDWSeomT4uBv8g97mGBvo=
+github.com/modelcontextprotocol/go-sdk v0.3.1 h1:0z04yIPlSwTluuelCBaL+wUag4YeflIU2Fr4Icb7M+o=
+github.com/modelcontextprotocol/go-sdk v0.3.1/go.mod h1:whv0wHnsTphwq7CTiKYHkLtwLC06WMoY2KpO+RB9yXQ=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
