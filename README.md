@@ -34,6 +34,8 @@ is able to return the authorization state.
 
 ## Why did we build Hypr MCP Gateway?
 
+Adding OAuth2 support to an MCP server has lots of footguns and poses a significant challenge with to many developers.
+By shifting the task to a separate infrastructure component, your MCP server can remain lean and be fully spec-compliant without you having to write a single line of code.
 We have created a write-up on [_Building Supabase-like OAuth Authentication For MCP Servers_](https://hyprmcp.com/blog/mcp-server-authentication/)
 on our [blog](https://hyprmcp.com/blog/) that goes into the details on MCP Server authentication. 
 
