@@ -3,8 +3,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/hyprmcp/mcp-gateway)](https://goreportcard.com/report/github.com/hyprmcp/mcp-gateway)
 [![GoDoc](https://godoc.org/github.com/hyprmcp/mcp-gateway?status.svg)](https://godoc.org/github.com/hyprmcp/mcp-gateway)
 
-Hypr MCP Gateway featuring 1-click plug-in OAuth authorization incl. dynamic client registration
-and MCP prompt analytics for streamable HTTP MCP server.
+Hypr MCP Gateway featuring 1-click plug-in OAuth authorization including dynamic client registration
+and MCP prompt analytics for streamable HTTP MCP servers.
 
 ## Main Features
 
@@ -29,18 +29,18 @@ and MCP prompt analytics for streamable HTTP MCP server.
 
 Do you want to see the Hypr MCP gateway in action?
 
-Checkout our [`examples/who-am-i`](examples/who-am-i/README.md) featuring an upstream MCP server that
+Check out our [`examples/who-am-i`](examples/who-am-i/README.md) featuring an upstream MCP server that
 is able to return the authorization state.
 
 ## Why did we build Hypr MCP Gateway?
 
-We have created a writeup on [_Building Supabase-like OAuth Authentication For MCP Servers_](https://hyprmcp.com/blog/mcp-server-authentication/)
+We have created a write-up on [_Building Supabase-like OAuth Authentication For MCP Servers_](https://hyprmcp.com/blog/mcp-server-authentication/)
 on our [blog](https://hyprmcp.com/blog/) that goes into the details on MCP Server authentication. 
 
 
 ## Contributing & Local development
 
-Checkout our [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed instructions.
+Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed instructions.
 
 ## Hypr MCP Cloud
 
