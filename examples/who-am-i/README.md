@@ -11,7 +11,7 @@ The upstream MCP server is called "MCP, Who am I?" and can be found on GitHub:
 All components of this setup are configured through a compose file and can be started with Docker Compose.
 Please ensure that you have a working Docker installation.
 
-### GitHub As Federated OIDC Provider
+### GitHub As OAuth Provider
 
 First, create a new OAuth application on GitHub here: https://github.com/settings/applications/new
 
@@ -63,6 +63,12 @@ You can either log in with your GitHub account or username password authenticati
 
 If you want to bypass the authentication proxy you can directly call the "Who am I?" MCP server
 at `http://localhost:3000/mcp` and will see that the request is not authenticated.
+
+## Demo
+
+Watch a demonstration of the MCP Gateway in action:
+
+[![MCP Gateway Demo](https://img.youtube.com/vi/-oEzwJe1wac/maxresdefault.jpg)](https://youtu.be/-oEzwJe1wac)
 
 ## Hypr MCP Cloud
 
