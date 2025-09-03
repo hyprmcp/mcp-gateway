@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.3](https://github.com/hyprmcp/mcp-gateway/compare/0.2.2...v0.2.3) (2025-09-03)
+
+
+### Bug Fixes
+
+* **deps:** update github.com/google/jsonschema-go digest to 7d3a774 ([#47](https://github.com/hyprmcp/mcp-gateway/issues/47)) ([d426690](https://github.com/hyprmcp/mcp-gateway/commit/d426690a6528f8ba3837a00e6743712782afd7a3))
+* **deps:** update module github.com/dexidp/dex/api/v2 to v2.4.0 ([#42](https://github.com/hyprmcp/mcp-gateway/issues/42)) ([a90d24f](https://github.com/hyprmcp/mcp-gateway/commit/a90d24f2b69a3ac74daa57ea02bbc3840a3b0d73))
+* **deps:** update module github.com/modelcontextprotocol/go-sdk to v0.3.1 ([#40](https://github.com/hyprmcp/mcp-gateway/issues/40)) ([4678d91](https://github.com/hyprmcp/mcp-gateway/commit/4678d91a4a36ea63241cdf9c54eb42fa8c9d4ff3))
+* **deps:** update module github.com/spf13/cobra to v1.10.1 ([#43](https://github.com/hyprmcp/mcp-gateway/issues/43)) ([5302710](https://github.com/hyprmcp/mcp-gateway/commit/5302710d5237e0ab16c13a3f6e7bef38e0cc6c9c))
+
+
+### Other
+
+* **release:** enable include "v" in tag ([#46](https://github.com/hyprmcp/mcp-gateway/issues/46)) ([f22ba35](https://github.com/hyprmcp/mcp-gateway/commit/f22ba35de8bd58ff6bbd874afcc7d6be709990d7))
+
+
+### Docs
+
+* readme update ([#45](https://github.com/hyprmcp/mcp-gateway/issues/45)) ([df116a2](https://github.com/hyprmcp/mcp-gateway/commit/df116a21de12d7892423b4e5141bff90fa9e0839))
+* rename docker-compose config ([#41](https://github.com/hyprmcp/mcp-gateway/issues/41)) ([218d546](https://github.com/hyprmcp/mcp-gateway/commit/218d546ade7b756c79c9bd65f6c851d6977794d6))
+
 ## [0.2.2](https://github.com/hyprmcp/mcp-gateway/compare/0.2.1...0.2.2) (2025-08-29)
 
 
