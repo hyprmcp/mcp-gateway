@@ -12,7 +12,7 @@ services:
       start_period: 10s
       start_interval: 1s
     configs:
-      - source: config.yaml
+      - source: dex-config.yaml
         target: /config.yaml
     env_file:
       - .dex.secret.env
@@ -45,7 +45,7 @@ services:
       - 3000:3000
 
 configs:
-  config.yaml:
+  dex-config.yaml:
     content: |
       issuer: http://localhost:5556
       web:
