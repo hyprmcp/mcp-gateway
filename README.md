@@ -34,7 +34,7 @@ is able to return the authorization state.
 
 ## Why did we build Hypr MCP Gateway?
 
-We create a writeup on [_Building Supabase-like OAuth Authentication For MCP Servers_](https://hyprmcp.com/blog/mcp-server-authentication/)
+We have created a writeup on [_Building Supabase-like OAuth Authentication For MCP Servers_](https://hyprmcp.com/blog/mcp-server-authentication/)
 on our [blog](https://hyprmcp.com/blog/) that goes into the details on MCP Server authentication. 
 
 
