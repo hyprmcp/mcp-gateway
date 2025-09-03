@@ -3,7 +3,7 @@ module github.com/hyprmcp/mcp-gateway
 go 1.24.5
 
 require (
-	github.com/dexidp/dex/api/v2 v2.3.0
+	github.com/dexidp/dex/api/v2 v2.4.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-chi/cors v1.2.2
 	github.com/go-chi/httprate v0.15.0
@@ -40,5 +40,5 @@ require (
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
+	google.golang.org/protobuf v1.36.8 // indirect
 )
