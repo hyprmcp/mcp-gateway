@@ -11,7 +11,7 @@ The upstream MCP server is called "MCP, Who am I?" and can be found on GitHub:
 All components of this setup are configured through a compose file and can be started with Docker Compose.
 Please ensure that you have a working Docker installation.
 
-### GitHub As OAuth Provider
+### GitHub As Identity Provider
 
 First, create a new OAuth application on GitHub here: https://github.com/settings/applications/new
 
