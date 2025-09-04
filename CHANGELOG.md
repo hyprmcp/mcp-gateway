@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.4](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.3...v0.2.4) (2025-09-04)
+
+
+### Docs
+
+* add demo video to example README ([#48](https://github.com/hyprmcp/mcp-gateway/issues/48)) ([8ec1fa0](https://github.com/hyprmcp/mcp-gateway/commit/8ec1fa08a7b78a99cbea93b8670298c7107ec390))
+* Update README.md ([#51](https://github.com/hyprmcp/mcp-gateway/issues/51)) ([111628b](https://github.com/hyprmcp/mcp-gateway/commit/111628b7197b9ddf71dab1cb0cac63f159b9499f))
+
 ## [0.2.3](https://github.com/hyprmcp/mcp-gateway/compare/0.2.2...v0.2.3) (2025-09-03)
 
 
