@@ -64,6 +64,26 @@ You can either log in with your GitHub account or username password authenticati
 If you want to bypass the authentication proxy you can directly call the "Who am I?" MCP server
 at `http://localhost:3000/mcp` and will see that the request is not authenticated.
 
+## HyprMCP Gateway
+
+- OAuth Proxy (incl. dynamic client registration)
+- Prompt Telemetry
+- MCP request logging and payload inspection
+
+```
+┌──────────────┐     OAuth2       ┌──────────────┐
+│   End User   │ ───────────────▶ │   Hypr MCP   │
+└──────────────┘  Single Login    │   Gateway    │
+                                  └──────┬───────┘
+                                         │
+                               ┌─────────┼───────────┐
+                               │         │           │
+                          ┌────▼───┐ ┌───▼────┐ ┌────▼───┐
+                          │ Tool A │ │ Tool B │ │ Tool C │
+                          └────────┘ └────────┘ └────────┘
+```
+
+
 ## Demo
 
 Watch a demonstration of the MCP Gateway in action:
