@@ -10,13 +10,14 @@ RUN go mod download
 COPY main.go main.go
 COPY cmd/ cmd/
 COPY config/ config/
+COPY htmlresponse/ htmlresponse/
 COPY jsonrpc/ jsonrpc/
 COPY log/ log/
 COPY oauth/ oauth/
 COPY proxy/ proxy/
 COPY webhook/ webhook/
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
-    go build -a -o mcp-gateway -ldflags="-s -w" .
+  go build -a -o mcp-gateway -ldflags="-s -w" .
 
 FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /
