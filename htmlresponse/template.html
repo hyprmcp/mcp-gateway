@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Install Instructions - {{ .Name }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/@hyprmcp/mcp-install-instructions-generator@0.1.0/dist/component/index.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@hyprmcp/mcp-install-instructions-generator@0.1.0/dist/component/index.css"
+    />
+    <style>
+      body {
+        background: #f0f0f0;
+        color: #282828;
+        margin: 0;
+        font-family: sans-serif;
+      }
+
+      main {
+        max-width: 52rem;
+        margin: 0 auto;
+      }
+
+      .card {
+        box-shadow:
+          0 2px 4px rgba(0, 0, 0, 0.1),
+          0 8px 16px rgba(0, 0, 0, 0.1);
+        background: #fcfcfc;
+        margin: 2.4rem 0 0.8rem;
+        padding: 2.4rem;
+        border-radius: 0.8rem;
+      }
+
+      .hero {
+        text-align: center;
+        font-size: 2.4rem;
+        font-weight: bold;
+      }
+
+      .intro {
+        margin: 2.4rem 0;
+      }
+
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        margin-bottom: 0.4rem;
+      }
+
+      button {
+        background: #000000;
+        color: #fff;
+        border: none;
+        border-radius: 0.4rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .footer {
+        display: flex;
+        gap: 0.2rem;
+        justify-content: flex-end;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="card">
+        <div class="hero">Install {{ or .Name .Url }}</div>
+        <div class="intro">
+          It looks like you're trying to install the MCP Server
+          <strong>{{ or .Name .Url }}</strong> but you've tried opening it in
+          your browser. If you're not sure how to proceed, don't worry, we've
+          got you covered! Just choose your preferred AI tool below and follow
+          the instructions:
+        </div>
+        <mcp-install-instructions
+          url="{{ .Url }}"
+          name="{{ .Name }}"
+        ></mcp-install-instructions>
+      </div>
+
+      <div class="footer">
+        Powered by
+        <a href="https://hyprmcp.com/" target="_blank"
+          ><img src="https://hyprmcp.com/hyprmcp_20px.svg"
+        /></a>
+      </div>
+    </main>
+  </body>
+</html>

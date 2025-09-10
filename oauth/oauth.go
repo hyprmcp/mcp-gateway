@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/httprate"
 	"github.com/hyprmcp/mcp-gateway/config"
+	"github.com/hyprmcp/mcp-gateway/htmlresponse"
 	"github.com/hyprmcp/mcp-gateway/log"
 	"github.com/lestrrat-go/httprc/v3"
 	"github.com/lestrrat-go/httprc/v3/errsink"
@@ -84,9 +85,12 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 }
 
 func (mgr *Manager) Handler(next http.Handler) http.Handler {
+	htmlHandler := htmlresponse.NewHandler(mgr.config)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rawToken :=
 			strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(r.Header.Get("Authorization")), "Bearer"))
+
+		shouldCallNext := true
 
 		token, err := jwt.ParseString(rawToken, jwt.WithKeySet(mgr.jwkSet))
 		if err != nil {
@@ -98,9 +102,18 @@ func (mgr *Manager) Handler(next http.Handler) http.Handler {
 				fmt.Sprintf(`Bearer resource_metadata="%s"`, metadataURL.String()),
 			)
 			w.WriteHeader(http.StatusUnauthorized)
-			return
+			shouldCallNext = false
 		}
 
-		next.ServeHTTP(w, r.WithContext(TokenContext(r.Context(), token, rawToken)))
+		if strings.Contains(r.Header.Get("Accept"), "text/html") {
+			if err := htmlHandler.Handle(w, r); err != nil {
+				log.Get(r.Context()).Error(err, "failed to handle html response")
+			}
+			shouldCallNext = false
+		}
+
+		if shouldCallNext {
+			next.ServeHTTP(w, r.WithContext(TokenContext(r.Context(), token, rawToken)))
+		}
 	})
 }
