@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.4](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.3...v0.2.4) (2025-09-10)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/google/jsonschema-go to v0.2.1 ([#53](https://github.com/hyprmcp/mcp-gateway/issues/53)) ([916eeb5](https://github.com/hyprmcp/mcp-gateway/commit/916eeb5a4312177c369c3d91c5d0011aa7fba800))
+* **deps:** update module github.com/modelcontextprotocol/go-sdk to v0.4.0 ([#52](https://github.com/hyprmcp/mcp-gateway/issues/52)) ([568900b](https://github.com/hyprmcp/mcp-gateway/commit/568900b8829f14cb80e501563ac9c9a5932a4b53))
+* **deps:** update module google.golang.org/grpc to v1.75.1 ([#55](https://github.com/hyprmcp/mcp-gateway/issues/55)) ([6be6137](https://github.com/hyprmcp/mcp-gateway/commit/6be6137374e81b473aa77f6d4311ec0056b05b16))
+
+
+### Other
+
+* add responding with html if request has "Accept: text/html" header ([#54](https://github.com/hyprmcp/mcp-gateway/issues/54)) ([876ad98](https://github.com/hyprmcp/mcp-gateway/commit/876ad98a7fdff6ed042a575ce65eb83faa413a54))
+* **deps:** update dependency go to v1.25.1 ([#49](https://github.com/hyprmcp/mcp-gateway/issues/49)) ([715b945](https://github.com/hyprmcp/mcp-gateway/commit/715b945d4ae01ffc86d4420c2e65d0cc5266ef0d))
+
+
+### Docs
+
+* add demo video to example README ([#48](https://github.com/hyprmcp/mcp-gateway/issues/48)) ([8ec1fa0](https://github.com/hyprmcp/mcp-gateway/commit/8ec1fa08a7b78a99cbea93b8670298c7107ec390))
+* Update README.md ([#51](https://github.com/hyprmcp/mcp-gateway/issues/51)) ([111628b](https://github.com/hyprmcp/mcp-gateway/commit/111628b7197b9ddf71dab1cb0cac63f159b9499f))
+
 ## [0.2.3](https://github.com/hyprmcp/mcp-gateway/compare/0.2.2...v0.2.3) (2025-09-03)
 
 
