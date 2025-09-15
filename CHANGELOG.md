@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.5](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.4...v0.2.5) (2025-09-15)
+
+
+### Bug Fixes
+
+* add showing html response also if auth is disabled ([#61](https://github.com/hyprmcp/mcp-gateway/issues/61)) ([39e5729](https://github.com/hyprmcp/mcp-gateway/commit/39e5729bf4fbf78e107dde5e933f697fef3956ea))
+* **deps:** update module github.com/google/jsonschema-go to v0.2.3 ([#57](https://github.com/hyprmcp/mcp-gateway/issues/57)) ([38be463](https://github.com/hyprmcp/mcp-gateway/commit/38be4634e90e2f6ea7598ca1462be0363c86017c))
+* **deps:** update module github.com/lestrrat-go/jwx/v3 to v3.0.11 ([#60](https://github.com/hyprmcp/mcp-gateway/issues/60)) ([d171699](https://github.com/hyprmcp/mcp-gateway/commit/d1716996f0dd847329872b2bdeb09995d089612d))
+* **deps:** update module github.com/modelcontextprotocol/go-sdk to v0.5.0 ([#59](https://github.com/hyprmcp/mcp-gateway/issues/59)) ([204e1a2](https://github.com/hyprmcp/mcp-gateway/commit/204e1a2c697e42953c2adc8d08c6978be9743cb2))
+
+
+### Other
+
+* **deps:** update sigstore/cosign-installer action to v3.10.0 ([#58](https://github.com/hyprmcp/mcp-gateway/issues/58)) ([94afbd7](https://github.com/hyprmcp/mcp-gateway/commit/94afbd7c25b6abde7d0796a1f2dc2deaecc55572))
+* final rename to hyprmcp ([#63](https://github.com/hyprmcp/mcp-gateway/issues/63)) ([02baf70](https://github.com/hyprmcp/mcp-gateway/commit/02baf70a9d3a3f0499b54ba07be7caca4ae170f7))
+
 ## [0.2.4](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.3...v0.2.4) (2025-09-10)
 
 
