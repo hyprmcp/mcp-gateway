@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.5...v0.2.6) (2025-09-15)
+
+
+### Other
+
+* **deps:** upgrade @hyprmcp/mcp-install-instructions-generator to 0.1.1 ([#64](https://github.com/hyprmcp/mcp-gateway/issues/64)) ([fc3c8db](https://github.com/hyprmcp/mcp-gateway/commit/fc3c8db3750d7503098f3b4fe565c06758bc4c7a))
+
 ## [0.2.5](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.4...v0.2.5) (2025-09-15)
 
 
