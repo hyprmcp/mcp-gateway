@@ -85,35 +85,27 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 }
 
 func (mgr *Manager) Handler(next http.Handler) http.Handler {
-	htmlHandler := htmlresponse.NewHandler(mgr.config)
+	htmlHandler := htmlresponse.NewHandler(mgr.config, true)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rawToken :=
 			strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(r.Header.Get("Authorization")), "Bearer"))
-
-		shouldCallNext := true
-
-		token, err := jwt.ParseString(rawToken, jwt.WithKeySet(mgr.jwkSet))
-		if err != nil {
-			metadataURL, _ := url.Parse(mgr.config.Host.String())
-			metadataURL.Path = ProtectedResourcePath
-			metadataURL = metadataURL.JoinPath(r.URL.Path)
-			w.Header().Set(
-				"WWW-Authenticate",
-				fmt.Sprintf(`Bearer resource_metadata="%s"`, metadataURL.String()),
-			)
-			w.WriteHeader(http.StatusUnauthorized)
-			shouldCallNext = false
-		}
-
-		if strings.Contains(r.Header.Get("Accept"), "text/html") {
-			if err := htmlHandler.Handle(w, r); err != nil {
-				log.Get(r.Context()).Error(err, "failed to handle html response")
-			}
-			shouldCallNext = false
-		}
-
-		if shouldCallNext {
+		if token, err := jwt.ParseString(rawToken, jwt.WithKeySet(mgr.jwkSet)); err != nil {
+			htmlHandler.Handler(mgr.unauthorizedHandler()).ServeHTTP(w, r)
+		} else {
 			next.ServeHTTP(w, r.WithContext(TokenContext(r.Context(), token, rawToken)))
 		}
 	})
+}
+
+func (mgr *Manager) unauthorizedHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		metadataURL, _ := url.Parse(mgr.config.Host.String())
+		metadataURL.Path = ProtectedResourcePath
+		metadataURL = metadataURL.JoinPath(r.URL.Path)
+		w.Header().Set(
+			"WWW-Authenticate",
+			fmt.Sprintf(`Bearer resource_metadata="%s"`, metadataURL.String()),
+		)
+		w.WriteHeader(http.StatusUnauthorized)
+	}
 }
