@@ -9,7 +9,7 @@ require (
 	github.com/go-chi/httprate v0.15.0
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/stdr v1.2.2
-	github.com/google/jsonschema-go v0.2.1
+	github.com/google/jsonschema-go v0.2.3
 	github.com/lestrrat-go/httprc/v3 v3.0.1
 	github.com/lestrrat-go/jwx/v3 v3.0.10
 	github.com/modelcontextprotocol/go-sdk v0.4.0
