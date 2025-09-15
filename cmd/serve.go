@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-logr/stdr"
 	"github.com/hyprmcp/mcp-gateway/config"
+	"github.com/hyprmcp/mcp-gateway/htmlresponse"
 	"github.com/hyprmcp/mcp-gateway/log"
 	"github.com/hyprmcp/mcp-gateway/oauth"
 	"github.com/hyprmcp/mcp-gateway/proxy"
@@ -107,6 +108,7 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 func newRouter(ctx context.Context, config *config.Config) (http.Handler, error) {
 	mux := http.NewServeMux()
 
+	htmlHandler := htmlresponse.NewHandler(config, false)
 	oauthManager, err := oauth.NewManager(ctx, config)
 	if err != nil {
 		return nil, err
@@ -119,6 +121,7 @@ func newRouter(ctx context.Context, config *config.Config) (http.Handler, error)
 	for _, proxyConfig := range config.Proxy {
 		if proxyConfig.Http != nil && proxyConfig.Http.Url != nil {
 			handler := proxy.NewProxyHandler(&proxyConfig)
+			handler = htmlHandler.Handler(handler)
 
 			if proxyConfig.Authentication.Enabled {
 				handler = oauthManager.Handler(handler)
