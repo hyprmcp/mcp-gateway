@@ -2,10 +2,10 @@
 <html>
   <head>
     <title>Install Instructions - {{ .Name }}</title>
-    <script src="https://cdn.jsdelivr.net/npm/@hyprmcp/mcp-install-instructions-generator@0.1.0/dist/component/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@hyprmcp/mcp-install-instructions-generator@0.1.1/dist/component/index.js"></script>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/@hyprmcp/mcp-install-instructions-generator@0.1.0/dist/component/index.css"
+      href="https://cdn.jsdelivr.net/npm/@hyprmcp/mcp-install-instructions-generator@0.1.1/dist/component/index.css"
     />
     <style>
       body {
@@ -72,22 +72,16 @@
         <div class="hero">Install {{ or .Name .Url }}</div>
         <div class="intro">
           It looks like you're trying to install the MCP Server
-          <strong>{{ or .Name .Url }}</strong> but you've tried opening it in
-          your browser. If you're not sure how to proceed, don't worry, we've
-          got you covered! Just choose your preferred AI tool below and follow
-          the instructions:
+          <strong>{{ or .Name .Url }}</strong> but you've tried opening it in your browser. If you're not sure how to
+          proceed, don't worry, we've got you covered! Just choose your preferred AI tool below and follow the
+          instructions:
         </div>
-        <mcp-install-instructions
-          url="{{ .Url }}"
-          name="{{ .Name }}"
-        ></mcp-install-instructions>
+        <mcp-install-instructions url="{{ .Url }}" name="{{ .Name }}"></mcp-install-instructions>
       </div>
 
       <div class="footer">
         Powered by
-        <a href="https://hyprmcp.com/" target="_blank"
-          ><img src="https://hyprmcp.com/hyprmcp_20px.svg"
-        /></a>
+        <a href="https://hyprmcp.com/" target="_blank"><img src="https://hyprmcp.com/hyprmcp_20px.svg" /></a>
       </div>
     </main>
   </body>
