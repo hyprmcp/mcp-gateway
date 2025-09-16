@@ -26,6 +26,8 @@ type Authorization struct {
 	// Deprecated: use DynamicClientRegistration instead
 	DynamicClientRegistrationEnabled *bool                      `yaml:"dynamicClientRegistrationEnabled" json:"dynamicClientRegistrationEnabled"`
 	DynamicClientRegistration        *DynamicClientRegistration `yaml:"dynamicClientRegistration" json:"dynamicClientRegistration"`
+	ClientID                         string                     `yaml:"clientId" json:"clientId"`
+	ClientSecret                     string                     `yaml:"clientSecret" json:"clientSecret"`
 }
 
 func (c *Authorization) GetDynamicClientRegistration() DynamicClientRegistration {
@@ -147,8 +149,8 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("serverMetadataProxyEnabled must be true when dynamicClientRegistrationEnabled is true")
 		}
 
-		if c.DexGRPCClient == nil || c.DexGRPCClient.Addr == "" {
-			return fmt.Errorf("dexGRPCClient is required when dynamicClientRegistrationEnabled is true")
+		if (c.DexGRPCClient == nil || c.DexGRPCClient.Addr == "") && c.Authorization.ClientID == "" {
+			return fmt.Errorf("dexGRPCClient or clientId is required when dynamicClientRegistrationEnabled is true")
 		}
 	}
 

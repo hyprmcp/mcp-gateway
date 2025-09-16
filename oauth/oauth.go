@@ -73,7 +73,16 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 		}
 	}
 
-	if mgr.config.Authorization.AuthorizationProxyEnabled {
+	if mgr.config.Authorization.ClientSecret != "" {
+		if handler, err := NewTokenHandler(mgr.config, mgr.authServerMeta); err != nil {
+			return err
+		} else {
+			mux.Handle(TokenPath, handler)
+		}
+		mux.Handle(CallbackPath, NewCallbackHandler(mgr.config))
+	}
+
+	if mgr.config.Authorization.AuthorizationProxyEnabled || mgr.config.Authorization.ClientSecret != "" {
 		if handler, err := NewAuthorizationHandler(mgr.config, mgr.authServerMeta); err != nil {
 			return err
 		} else {

@@ -32,12 +32,20 @@ func NewAuthorizationServerMetadataHandler(config *config.Config) http.Handler {
 			}
 		}
 
-		if config.Authorization.AuthorizationProxyEnabled {
+		if config.Authorization.AuthorizationProxyEnabled || config.Authorization.ClientSecret != "" {
 			authorizationURI, _ := url.Parse(config.Host.String())
 			authorizationURI.Path = AuthorizationPath
 			metadata["authorization_endpoint"] = authorizationURI.String()
 			log.Get(r.Context()).Info("Adding authorization endpoint to authorization server metadata",
 				"url", metadata["authorization_endpoint"])
+		}
+
+		if config.Authorization.ClientSecret != "" {
+			tokenURI, _ := url.Parse(config.Host.String())
+			tokenURI.Path = TokenPath
+			metadata["token_endpoint"] = tokenURI.String()
+			log.Get(r.Context()).Info("Adding token endpoint to authorization server metadata",
+				"url", metadata["token_endpoint"])
 		}
 
 		w.Header().Set("Content-Type", "application/json")

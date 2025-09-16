@@ -1,8 +1,10 @@
 package oauth
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"slices"
 	"strings"
@@ -26,16 +28,73 @@ type ClientInformation struct {
 	Scope                 string   `json:"scope,omitempty"`
 }
 
-func NewDynamicClientRegistrationHandler(config *config.Config, meta map[string]any) (http.Handler, error) {
-	grpcClient, err := grpc.NewClient(
-		config.DexGRPCClient.Addr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+type DynamicClientRegistrationHandler interface {
+	Handle(ctx context.Context, request ClientInformation) (*ClientInformation, error)
+}
+
+type dexDCRHandler struct {
+	config    *config.Config
+	dexClient api.DexClient
+}
+
+func (h *dexDCRHandler) Handle(ctx context.Context, request ClientInformation) (*ClientInformation, error) {
+	client := api.Client{
+		Id:           genRandom(),
+		Name:         request.ClientName,
+		LogoUrl:      request.LogoURI,
+		RedirectUris: request.RedirectURIs,
+		Public:       true,
+	}
+
+	if !h.config.Authorization.GetDynamicClientRegistration().PublicClient {
+		client.Secret = genRandom()
+	}
+
+	clientResponse, err := h.dexClient.CreateClient(ctx, &api.CreateClientReq{Client: &client})
 	if err != nil {
 		return nil, err
 	}
 
-	dexClient := api.NewDexClient(grpcClient)
+	return &ClientInformation{
+		ClientID:     clientResponse.Client.Id,
+		ClientSecret: clientResponse.Client.Secret,
+		ClientName:   clientResponse.Client.Name,
+		RedirectURIs: clientResponse.Client.RedirectUris,
+		LogoURI:      clientResponse.Client.LogoUrl,
+	}, nil
+}
+
+type fakeDCRHandler struct {
+	clientId string
+}
+
+func (h *fakeDCRHandler) Handle(ctx context.Context, request ClientInformation) (*ClientInformation, error) {
+	request.ClientID = h.clientId
+	return &request, nil
+}
+
+func NewDynamicClientRegistrationHandler(config *config.Config, meta map[string]any) (http.Handler, error) {
+	var dcrHandler DynamicClientRegistrationHandler
+	if config.DexGRPCClient != nil {
+		grpcClient, err := grpc.NewClient(
+			config.DexGRPCClient.Addr,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		dcrHandler = &dexDCRHandler{
+			config:    config,
+			dexClient: api.NewDexClient(grpcClient),
+		}
+	} else if config.Authorization.ClientID != "" {
+		dcrHandler = &fakeDCRHandler{
+			clientId: config.Authorization.ClientID,
+		}
+	} else {
+		return nil, errors.New("incomplete DCR config")
+	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body ClientInformation
@@ -46,46 +105,26 @@ func NewDynamicClientRegistrationHandler(config *config.Config, meta map[string]
 
 		log.Get(r.Context()).Info("Received dynamic client registration request", "body", body)
 
-		client := api.Client{
-			Id:           genRandom(),
-			Name:         body.ClientName,
-			LogoUrl:      body.LogoURI,
-			RedirectUris: body.RedirectURIs,
-			Public:       true,
-		}
-
-		if !config.Authorization.GetDynamicClientRegistration().PublicClient {
-			client.Secret = genRandom()
-		}
-
-		clientResponse, err := dexClient.CreateClient(r.Context(), &api.CreateClientReq{Client: &client})
+		resp, err := dcrHandler.Handle(r.Context(), body)
 		if err != nil {
 			log.Get(r.Context()).Error(err, "failed to create client")
 			http.Error(w, "Failed to create client", http.StatusInternalServerError)
 			return
 		}
 
-		w.WriteHeader(http.StatusCreated)
-		w.Header().Set("Content-Type", "application/json")
-
-		resp := ClientInformation{
-			ClientID:     clientResponse.Client.Id,
-			ClientSecret: clientResponse.Client.Secret,
-			ClientName:   clientResponse.Client.Name,
-			RedirectURIs: clientResponse.Client.RedirectUris,
-			LogoURI:      clientResponse.Client.LogoUrl,
-		}
-
 		if scopesSupported := getSupportedScopes(meta); len(scopesSupported) > 0 {
 			resp.Scope = strings.Join(scopesSupported, " ")
 		}
+
+		w.WriteHeader(http.StatusCreated)
+		w.Header().Set("Content-Type", "application/json")
 
 		err = json.NewEncoder(w).Encode(resp)
 		if err != nil {
 			log.Get(r.Context()).Error(err, "Failed to encode response")
 		}
 
-		log.Get(r.Context()).Info("Client created successfully", "client_id", clientResponse.Client.Id)
+		log.Get(r.Context()).Info("Client created successfully", "client_id", resp.ClientID)
 	}), nil
 }
 
