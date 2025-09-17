@@ -13,6 +13,8 @@ import (
 	"github.com/hyprmcp/mcp-gateway/config"
 	"github.com/hyprmcp/mcp-gateway/htmlresponse"
 	"github.com/hyprmcp/mcp-gateway/log"
+	"github.com/hyprmcp/mcp-gateway/metadata"
+	"github.com/hyprmcp/mcp-gateway/oauth/dcr"
 	"github.com/lestrrat-go/httprc/v3"
 	"github.com/lestrrat-go/httprc/v3/errsink"
 	"github.com/lestrrat-go/httprc/v3/tracesink"
@@ -61,11 +63,13 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 	mux.Handle(ProtectedResourcePath, NewProtectedResourceHandler(mgr.config))
 
 	if mgr.config.Authorization.ServerMetadataProxyEnabled {
-		mux.Handle(AuthorizationServerMetadataPath, NewAuthorizationServerMetadataHandler(mgr.config))
+		mux.Handle(metadata.OAuth2MetadataPath, NewAuthorizationServerMetadataHandler(mgr.config))
 	}
 
-	if mgr.config.Authorization.GetDynamicClientRegistration().Enabled {
-		if handler, err := NewDynamicClientRegistrationHandler(mgr.config, mgr.authServerMeta); err != nil {
+	if reg, err := dcr.NewRegistrarFromConfig(context.TODO(), &mgr.config.Authorization); err != nil {
+		return err
+	} else if reg != nil {
+		if handler, err := NewDynamicClientRegistrationHandler(reg, mgr.authServerMeta); err != nil {
 			return err
 		} else {
 			rateLimiter := httprate.LimitByRealIP(3, 10*time.Minute)

@@ -8,15 +8,16 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hyprmcp/mcp-gateway/config"
 	"github.com/hyprmcp/mcp-gateway/log"
+	"github.com/hyprmcp/mcp-gateway/metadata"
+	"github.com/hyprmcp/mcp-gateway/oauth/dcr"
 )
 
 const (
 	TokenPath = "/oauth/token"
 )
 
-func NewTokenHandler(config *config.Config, meta map[string]any) (http.Handler, error) {
+func NewTokenHandler(hostURL string, clientSrc dcr.ClientIDSource, meta metadata.Metadata) (http.Handler, error) {
 	if tokenEndpointStr, ok := meta["token_endpoint"].(string); !ok {
 		return nil, errors.New("authorization metadata is missing token_endpoint field")
 	} else if _, err := url.Parse(tokenEndpointStr); err != nil {
@@ -32,14 +33,14 @@ func NewTokenHandler(config *config.Config, meta map[string]any) (http.Handler, 
 
 			req := r.Form
 
-			req.Set("client_id", config.Authorization.ClientID)
+			req.Set("client_id", clientSrc.GetClientID())
 
-			if clientSecret := config.Authorization.ClientSecret; clientSecret != "" {
+			if clientSecret := clientSrc.GetClientSecret(); clientSecret != "" {
 				req.Set("client_secret", clientSecret)
 			}
 
 			if req.Has("redirect_uri") {
-				overrideRedirectURI, _ := url.Parse(config.Host.String())
+				overrideRedirectURI, _ := url.Parse(hostURL)
 				overrideRedirectURI.Path = CallbackPath
 				req.Set("redirect_uri", overrideRedirectURI.String())
 			}

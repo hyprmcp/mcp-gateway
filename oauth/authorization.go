@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,14 +11,15 @@ import (
 
 	"github.com/hyprmcp/mcp-gateway/config"
 	"github.com/hyprmcp/mcp-gateway/log"
+	"github.com/hyprmcp/mcp-gateway/metadata"
 )
 
 const AuthorizationPath = "/oauth/authorize"
 
 var stateMap = make(map[string]string)
 
-func NewAuthorizationHandler(config *config.Config, meta map[string]any) (http.Handler, error) {
-	supportedScopes := getSupportedScopes(meta)
+func NewAuthorizationHandler(config *config.Config, meta metadata.Metadata) (http.Handler, error) {
+	supportedScopes := meta.GetSupportedScopes()
 	var requiredScopes = slices.DeleteFunc(
 		[]string{"openid", "profile", "email"},
 		func(s string) bool { return !slices.Contains(supportedScopes, s) },
@@ -47,7 +49,7 @@ func NewAuthorizationHandler(config *config.Config, meta map[string]any) (http.H
 				if origRedirectURI := q.Get("redirect_uri"); origRedirectURI != "" {
 					state := q.Get("state")
 					if state != "" {
-						state = genRandom()
+						state = rand.Text()
 						q.Set("state", state)
 					}
 					log.Get(r.Context()).Info("storing redirect uri", "redirect_uri", origRedirectURI, "state", state)
