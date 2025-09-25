@@ -48,14 +48,22 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 
 	if opts.AuthProxyAddr != "" {
 		go func() {
-			log.Get(ctx).Info("starting auth proxy server", "addr", opts.AuthProxyAddr)
-			authUrl, err := url.Parse(cfg.Authorization.Server)
-			if err != nil {
-				done <- fmt.Errorf("auth proxy serve failed: %w", err)
-			} else if err := http.ListenAndServe(opts.AuthProxyAddr, &httputil.ReverseProxy{Rewrite: proxy.RewriteHostFunc(authUrl)}); !errors.Is(err, http.ErrServerClosed) {
-				done <- fmt.Errorf("auth proxy serve failed: %w", err)
+			if authConfig := config.GetActualAuthorizationConfig(cfg); authConfig == nil {
+				done <- fmt.Errorf("authorization config is nil")
+				return
+			} else if src, ok := authConfig.(config.AuthorizationServerSource); !ok {
+				done <- fmt.Errorf("authorization config is not an AuthorizationServerSource")
+				return
 			} else {
-				done <- nil
+				log.Get(ctx).Info("starting auth proxy server", "addr", opts.AuthProxyAddr)
+				authUrl, err := url.Parse(src.GetAuthorizationServer())
+				if err != nil {
+					done <- fmt.Errorf("auth proxy serve failed: %w", err)
+				} else if err := http.ListenAndServe(opts.AuthProxyAddr, &httputil.ReverseProxy{Rewrite: proxy.RewriteHostFunc(authUrl)}); !errors.Is(err, http.ErrServerClosed) {
+					done <- fmt.Errorf("auth proxy serve failed: %w", err)
+				} else {
+					done <- nil
+				}
 			}
 		}()
 	}

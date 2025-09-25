@@ -10,9 +10,10 @@ type Metadata map[string]any
 var _ MetadataSource = Metadata(nil)
 
 const (
-	RegistrationEndpointKey = "registration_endpoint"
-	TokenEndpointKey        = "token_endpoint"
-	SupportedScopesKey      = "scopes_supported"
+	RegistrationEndpointKey  = "registration_endpoint"
+	TokenEndpointKey         = "token_endpoint"
+	AuthorizationEndpointKey = "authorization_endpoint"
+	SupportedScopesKey       = "scopes_supported"
 )
 
 func (meta Metadata) GetMetadata(ctx context.Context) (Metadata, error) {

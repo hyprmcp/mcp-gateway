@@ -9,6 +9,10 @@ import (
 
 type AuthorizationType string
 
+type AuthorizationServerSource interface {
+	GetAuthorizationServer() string
+}
+
 const (
 	AuthorizationTypeOAuth2 AuthorizationType = "oauth2"
 	AuthorizationTypeOIDC   AuthorizationType = "oidc"
@@ -34,6 +38,25 @@ type Authorization struct {
 	OIDC   *AuthorizationOIDC   `yaml:"oidc,omitempty" json:"oidc,omitempty"`
 	GitHub *AuthorizationGitHub `yaml:"github,omitempty" json:"github,omitempty"`
 	Dex    *AuthorizationDex    `yaml:"dex,omitempty" json:"dex,omitempty"`
+}
+
+func GetActualAuthorizationConfig(config *Config) metadata.MetadataSource {
+	if config == nil {
+		return nil
+	}
+
+	switch config.Authorization.Type {
+	case AuthorizationTypeOAuth2:
+		return config.Authorization.OAuth2
+	case AuthorizationTypeOIDC:
+		return config.Authorization.OIDC
+	case AuthorizationTypeGitHub:
+		return config.Authorization.GitHub
+	case AuthorizationTypeDex:
+		return config.Authorization.Dex
+	default:
+		panic("invalid authorization config")
+	}
 }
 
 func (a *Authorization) Validate() error {
@@ -105,6 +128,10 @@ type AuthorizationOIDC struct {
 	ClientSecret string `yaml:"clientSecret" json:"clientSecret"`
 }
 
+func (a *AuthorizationOIDC) GetAuthorizationServer() string {
+	return a.IssuerURL
+}
+
 func (a *AuthorizationOIDC) Validate() error {
 	if a == nil {
 		return fmt.Errorf("oidc is nil")
@@ -162,11 +189,13 @@ func (a *AuthorizationGitHub) Validate() error {
 }
 
 type AuthorizationDex struct {
-	Server                     string                     `yaml:"server" json:"server"`
-	GRPCAddr                   string                     `yaml:"grpcAddr" json:"grpcAddr"`
-	ServerMetadataProxyEnabled bool                       `yaml:"serverMetadataProxyEnabled" json:"serverMetadataProxyEnabled"`
-	AuthorizationProxyEnabled  bool                       `yaml:"authorizationProxyEnabled" json:"authorizationProxyEnabled"`
-	DynamicClientRegistration  *DynamicClientRegistration `yaml:"dynamicClientRegistration" json:"dynamicClientRegistration"`
+	Server                    string                     `yaml:"server" json:"server"`
+	GRPCAddr                  string                     `yaml:"grpcAddr" json:"grpcAddr"`
+	DynamicClientRegistration *DynamicClientRegistration `yaml:"dynamicClientRegistration" json:"dynamicClientRegistration"`
+}
+
+func (a *AuthorizationDex) GetAuthorizationServer() string {
+	return a.Server
 }
 
 func (a *AuthorizationDex) Validate() error {

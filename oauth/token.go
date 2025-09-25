@@ -10,6 +10,7 @@ import (
 
 	"github.com/hyprmcp/mcp-gateway/log"
 	"github.com/hyprmcp/mcp-gateway/metadata"
+	"github.com/hyprmcp/mcp-gateway/oauth/callback"
 	"github.com/hyprmcp/mcp-gateway/oauth/dcr"
 )
 
@@ -41,7 +42,7 @@ func NewTokenHandler(hostURL string, clientSrc dcr.ClientIDSource, meta metadata
 
 			if req.Has("redirect_uri") {
 				overrideRedirectURI, _ := url.Parse(hostURL)
-				overrideRedirectURI.Path = CallbackPath
+				overrideRedirectURI.Path = callback.CallbackPath
 				req.Set("redirect_uri", overrideRedirectURI.String())
 			}
 

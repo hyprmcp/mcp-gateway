@@ -2,32 +2,16 @@ package oauth
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/hyprmcp/mcp-gateway/config"
+	"github.com/hyprmcp/mcp-gateway/oauth/callback"
 )
 
-const (
-	CallbackPath = "/oauth/callback"
-)
-
-func NewCallbackHandler(config *config.Config) http.Handler {
+func NewCallbackHandler(config *config.Config, store callback.URIStore) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		state := r.FormValue("state")
-		if state == "" {
-			http.Error(w, "missing state", http.StatusBadRequest)
-			return
-		}
-
-		if redirectURIStr, ok := stateMap[state]; !ok {
-			http.Error(w, "invalid state (no redirect URI)", http.StatusBadRequest)
-			return
+		if p, err := store.Get(r.FormValue("state")); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		} else {
-			p, err := url.Parse(redirectURIStr)
-			if err != nil {
-				http.Error(w, "invalid redirect URI", http.StatusBadRequest)
-				return
-			}
 			p.RawQuery = r.URL.Query().Encode()
 			http.Redirect(w, r, p.String(), http.StatusFound)
 		}

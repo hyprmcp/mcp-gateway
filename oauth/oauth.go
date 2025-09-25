@@ -14,6 +14,8 @@ import (
 	"github.com/hyprmcp/mcp-gateway/htmlresponse"
 	"github.com/hyprmcp/mcp-gateway/log"
 	"github.com/hyprmcp/mcp-gateway/metadata"
+	"github.com/hyprmcp/mcp-gateway/oauth/authorization"
+	"github.com/hyprmcp/mcp-gateway/oauth/callback"
 	"github.com/hyprmcp/mcp-gateway/oauth/dcr"
 	"github.com/lestrrat-go/httprc/v3"
 	"github.com/lestrrat-go/httprc/v3/errsink"
@@ -25,22 +27,25 @@ import (
 type Manager struct {
 	jwkSet         jwk.Set
 	config         *config.Config
+	authConfig     metadata.MetadataSource
 	authServerMeta map[string]any
 }
 
-func NewManager(ctx context.Context, config *config.Config) (*Manager, error) {
+func NewManager(ctx context.Context, cfg *config.Config) (*Manager, error) {
 	log := log.Get(ctx)
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	if cache, err := jwk.NewCache(ctx, httprc.NewClient(
+	if authConfig := config.GetActualAuthorizationConfig(cfg); authConfig == nil {
+		return nil, errors.New("actual auth config must not be nil")
+	} else if meta, err := authConfig.GetMetadata(ctx); err != nil {
+		return nil, fmt.Errorf("authorization server metadata error: %w", err)
+	} else if cache, err := jwk.NewCache(ctx, httprc.NewClient(
 		httprc.WithTraceSink(tracesink.Func(func(ctx context.Context, s string) { log.V(1).Info(s) })),
 		httprc.WithErrorSink(errsink.NewFunc(func(ctx context.Context, err error) { log.V(1).Error(err, "httprc.NewClient error") })),
 	)); err != nil {
 		return nil, fmt.Errorf("jwk cache creation error: %w", err)
-	} else if meta, err := GetMedatata(config.Authorization.Server); err != nil {
-		return nil, fmt.Errorf("authorization server metadata error: %w", err)
 	} else if jwksURI, ok := meta["jwks_uri"].(string); !ok {
 		return nil, errors.New("no jwks_uri")
 	} else if err := cache.Register(
@@ -55,16 +60,19 @@ func NewManager(ctx context.Context, config *config.Config) (*Manager, error) {
 	} else if s, err := cache.CachedSet(jwksURI); err != nil {
 		return nil, fmt.Errorf("jwks cache set error: %w", err)
 	} else {
-		return &Manager{jwkSet: s, config: config, authServerMeta: meta}, nil
+		return &Manager{jwkSet: s, config: cfg, authConfig: authConfig, authServerMeta: meta}, nil
 	}
 }
 
 func (mgr *Manager) Register(mux *http.ServeMux) error {
-	mux.Handle(ProtectedResourcePath, NewProtectedResourceHandler(mgr.config))
+	log := log.Root().V(1)
+	log.Info("registering OAuth endpoints")
 
-	if mgr.config.Authorization.ServerMetadataProxyEnabled {
-		mux.Handle(metadata.OAuth2MetadataPath, NewAuthorizationServerMetadataHandler(mgr.config))
-	}
+	store := callback.NewURIStore()
+	var authFns []authorization.EditQueryFunc
+	var metaFns []metadata.EditMetadataFunc
+
+	mux.Handle(ProtectedResourcePath, NewProtectedResourceHandler(mgr.config, mgr.config.Host.String()))
 
 	if reg, err := dcr.NewRegistrarFromConfig(context.TODO(), &mgr.config.Authorization); err != nil {
 		return err
@@ -75,23 +83,54 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 			rateLimiter := httprate.LimitByRealIP(3, 10*time.Minute)
 			mux.Handle(DynamicClientRegistrationPath, rateLimiter(handler))
 		}
+
+		regEndpointURI, _ := url.Parse(mgr.config.Host.String())
+		regEndpointURI.Path = DynamicClientRegistrationPath
+		metaFns = append(metaFns, metadata.ReplaceRegistrationEndpoint(regEndpointURI.String()))
+
+		log.Info("DCR endpoint registered")
 	}
 
-	if mgr.config.Authorization.ClientSecret != "" {
-		if handler, err := NewTokenHandler(mgr.config, mgr.authServerMeta); err != nil {
+	// TODO: Make required scopes optional/configurable
+	authFns = append(authFns, authorization.RequiredScopes([]string{"openid", "profile", "email"}, mgr.authServerMeta))
+
+	if idSrc, ok := mgr.authConfig.(dcr.ClientIDSource); ok {
+		if handler, err := NewTokenHandler(mgr.config.Host.String(), idSrc, mgr.authServerMeta); err != nil {
 			return err
 		} else {
 			mux.Handle(TokenPath, handler)
 		}
-		mux.Handle(CallbackPath, NewCallbackHandler(mgr.config))
+		mux.Handle(callback.CallbackPath, NewCallbackHandler(mgr.config, store))
+		authFns = append(authFns, authorization.RedirectURI(mgr.config.Host.String(), store))
+
+		tokenEndpointURI, _ := url.Parse(mgr.config.Host.String())
+		tokenEndpointURI.Path = TokenPath
+		metaFns = append(metaFns, metadata.ReplaceTokenEndpoint(tokenEndpointURI.String()))
+
+		log.Info("token endpoint registered")
 	}
 
-	if mgr.config.Authorization.AuthorizationProxyEnabled || mgr.config.Authorization.ClientSecret != "" {
-		if handler, err := NewAuthorizationHandler(mgr.config, mgr.authServerMeta); err != nil {
+	if len(authFns) > 0 {
+		handler, err := NewAuthorizationHandler(mgr.config, mgr.authServerMeta, authorization.EditChain(authFns...))
+		if err != nil {
 			return err
-		} else {
-			mux.Handle(AuthorizationPath, handler)
 		}
+		mux.Handle(AuthorizationPath, handler)
+
+		authEndpointURI, _ := url.Parse(mgr.config.Host.String())
+		authEndpointURI.Path = AuthorizationPath
+		metaFns = append(metaFns, metadata.ReplaceAuthorizationEndpoint(authEndpointURI.String()))
+
+		log.Info("authorization endpoint registered", "authFns", len(authFns))
+	}
+
+	if len(metaFns) > 0 {
+		mux.Handle(
+			metadata.OAuth2MetadataPath,
+			NewAuthorizationServerMetadataHandler(mgr.config, mgr.authConfig, metadata.EditChain(metaFns...)),
+		)
+
+		log.Info("metadata endpoint registered", "metaFns", len(metaFns))
 	}
 
 	return nil
