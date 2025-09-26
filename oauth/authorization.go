@@ -13,8 +13,6 @@ import (
 
 const AuthorizationPath = "/oauth/authorize"
 
-var stateMap = make(map[string]string)
-
 func NewAuthorizationHandler(
 	config *config.Config,
 	meta metadata.Metadata,

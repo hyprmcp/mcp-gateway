@@ -3,30 +3,20 @@ package oauth
 import (
 	"context"
 
-	"github.com/lestrrat-go/jwx/v3/jwt"
+	"github.com/hyprmcp/mcp-gateway/oauth/userinfo"
 )
 
-type tokenKey struct{}
-type rawTokenKey struct{}
+type userInfoKey struct{}
 
-func TokenContext(parent context.Context, token jwt.Token, rawToken string) context.Context {
-	parent = context.WithValue(parent, tokenKey{}, token)
-	parent = context.WithValue(parent, rawTokenKey{}, rawToken)
+func UserInfoContext(parent context.Context, userInfo *userinfo.UserInfo) context.Context {
+	parent = context.WithValue(parent, userInfoKey{}, userInfo)
 	return parent
 }
 
-func GetToken(ctx context.Context) jwt.Token {
-	if val, ok := ctx.Value(tokenKey{}).(jwt.Token); ok {
+func GetUserInfo(ctx context.Context) *userinfo.UserInfo {
+	if val, ok := ctx.Value(userInfoKey{}).(*userinfo.UserInfo); ok {
 		return val
 	} else {
 		return nil
-	}
-}
-
-func GetRawToken(ctx context.Context) string {
-	if val, ok := ctx.Value(rawTokenKey{}).(string); ok {
-		return val
-	} else {
-		return ""
 	}
 }

@@ -9,4 +9,4 @@ run = "go mod tidy"
 run = "golangci-lint run"
 
 [tasks.serve]
-run = "go run . --config config.yaml"
+run = "go run . --config config.yaml -v 1"

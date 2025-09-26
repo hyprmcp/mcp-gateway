@@ -17,50 +17,39 @@ import (
 	"github.com/hyprmcp/mcp-gateway/oauth/authorization"
 	"github.com/hyprmcp/mcp-gateway/oauth/callback"
 	"github.com/hyprmcp/mcp-gateway/oauth/dcr"
-	"github.com/lestrrat-go/httprc/v3"
-	"github.com/lestrrat-go/httprc/v3/errsink"
-	"github.com/lestrrat-go/httprc/v3/tracesink"
-	"github.com/lestrrat-go/jwx/v3/jwk"
-	"github.com/lestrrat-go/jwx/v3/jwt"
+	"github.com/hyprmcp/mcp-gateway/oauth/userinfo"
 )
 
 type Manager struct {
-	jwkSet         jwk.Set
+	tokenValidator userinfo.TokenValidator
 	config         *config.Config
 	authConfig     metadata.MetadataSource
 	authServerMeta map[string]any
 }
 
 func NewManager(ctx context.Context, cfg *config.Config) (*Manager, error) {
-	log := log.Get(ctx)
-
-	timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
 	if authConfig := config.GetActualAuthorizationConfig(cfg); authConfig == nil {
 		return nil, errors.New("actual auth config must not be nil")
 	} else if meta, err := authConfig.GetMetadata(ctx); err != nil {
 		return nil, fmt.Errorf("authorization server metadata error: %w", err)
-	} else if cache, err := jwk.NewCache(ctx, httprc.NewClient(
-		httprc.WithTraceSink(tracesink.Func(func(ctx context.Context, s string) { log.V(1).Info(s) })),
-		httprc.WithErrorSink(errsink.NewFunc(func(ctx context.Context, err error) { log.V(1).Error(err, "httprc.NewClient error") })),
-	)); err != nil {
-		return nil, fmt.Errorf("jwk cache creation error: %w", err)
+	} else if _, ok := authConfig.(*config.AuthorizationGitHub); ok {
+		return &Manager{
+			config:         cfg,
+			authConfig:     authConfig,
+			authServerMeta: meta,
+			tokenValidator: userinfo.ValidateGitHub(nil),
+		}, nil
 	} else if jwksURI, ok := meta["jwks_uri"].(string); !ok {
 		return nil, errors.New("no jwks_uri")
-	} else if err := cache.Register(
-		timeoutCtx,
-		jwksURI,
-		jwk.WithMinInterval(10*time.Second),
-		jwk.WithMaxInterval(5*time.Minute),
-	); err != nil {
-		return nil, fmt.Errorf("jwks registration error: %w", err)
-	} else if _, err := cache.Refresh(timeoutCtx, jwksURI); err != nil {
-		return nil, fmt.Errorf("jwks refresh error: %w", err)
-	} else if s, err := cache.CachedSet(jwksURI); err != nil {
-		return nil, fmt.Errorf("jwks cache set error: %w", err)
+	} else if tokenValidator, err := userinfo.ValidateDynamicJWKS(ctx, jwksURI); err != nil {
+		return nil, fmt.Errorf("failed to initialize dynamic JWKS token validator: %w", err)
 	} else {
-		return &Manager{jwkSet: s, config: cfg, authConfig: authConfig, authServerMeta: meta}, nil
+		return &Manager{
+			config:         cfg,
+			authConfig:     authConfig,
+			authServerMeta: meta,
+			tokenValidator: tokenValidator,
+		}, nil
 	}
 }
 
@@ -92,7 +81,7 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 	}
 
 	// TODO: Make required scopes optional/configurable
-	authFns = append(authFns, authorization.RequiredScopes([]string{"openid", "profile", "email"}, mgr.authServerMeta))
+	authFns = append(authFns, authorization.RequiredScopes([]string{"openid", "profile", "email", "user:email"}, mgr.authServerMeta))
 
 	if idSrc, ok := mgr.authConfig.(dcr.ClientIDSource); ok {
 		if handler, err := NewTokenHandler(mgr.config.Host.String(), idSrc, mgr.authServerMeta); err != nil {
@@ -141,10 +130,10 @@ func (mgr *Manager) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rawToken :=
 			strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(r.Header.Get("Authorization")), "Bearer"))
-		if token, err := jwt.ParseString(rawToken, jwt.WithKeySet(mgr.jwkSet)); err != nil {
+		if userInfo, err := mgr.tokenValidator.ValidateToken(r.Context(), rawToken); err != nil {
 			htmlHandler.Handler(mgr.unauthorizedHandler()).ServeHTTP(w, r)
 		} else {
-			next.ServeHTTP(w, r.WithContext(TokenContext(r.Context(), token, rawToken)))
+			next.ServeHTTP(w, r.WithContext(UserInfoContext(r.Context(), userInfo)))
 		}
 	})
 }
