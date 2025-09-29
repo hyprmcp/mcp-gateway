@@ -158,8 +158,6 @@ func (a *AuthorizationOIDC) GetMetadata(ctx context.Context) (metadata.Metadata,
 	return metadata.FetchMetadataDiscovery(ctx, a.IssuerURL)
 }
 
-// TODO: GitHub access tokens are not JWTs, so we need to validate them by calling the userinfo endpoint
-// Something similar should probably be done for OAuth as well
 type AuthorizationGitHub struct {
 	ClientID     string `yaml:"clientId" json:"clientId"`
 	ClientSecret string `yaml:"clientSecret" json:"clientSecret"`
@@ -175,7 +173,6 @@ func (a *AuthorizationGitHub) GetClientSecret() string {
 
 func (a *AuthorizationGitHub) GetMetadata(ctx context.Context) (metadata.Metadata, error) {
 	return metadata.Metadata{
-		// TODO: issuer should be host from the root config
 		"issuer":                   "https://github.com",
 		"response_types_supported": []string{"code"},
 		"authorization_endpoint":   "https://github.com/login/oauth/authorize",
