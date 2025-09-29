@@ -13,6 +13,7 @@ COPY config/ config/
 COPY htmlresponse/ htmlresponse/
 COPY jsonrpc/ jsonrpc/
 COPY log/ log/
+COPY metadata/ metadata/
 COPY oauth/ oauth/
 COPY proxy/ proxy/
 COPY webhook/ webhook/

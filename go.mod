@@ -9,6 +9,7 @@ require (
 	github.com/go-chi/httprate v0.15.0
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/stdr v1.2.2
+	github.com/google/go-github/v75 v75.0.0
 	github.com/google/jsonschema-go v0.2.3
 	github.com/lestrrat-go/httprc/v3 v3.0.1
 	github.com/lestrrat-go/jwx/v3 v3.0.11
@@ -24,6 +25,7 @@ require (
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect

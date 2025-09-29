@@ -20,7 +20,7 @@ type ProtectedResourceMetadata struct {
 // locations of authorization servers.
 //
 // Should be used to create a handler for the /.well-known/oauth-protected-resource endpoint.
-func NewProtectedResourceHandler(config *config.Config) http.Handler {
+func NewProtectedResourceHandler(config *config.Config, authServerURI string) http.Handler {
 	return http.StripPrefix(
 		ProtectedResourcePath,
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -29,12 +29,9 @@ func NewProtectedResourceHandler(config *config.Config) http.Handler {
 
 				resourceURL, _ := url.Parse(config.Host.String())
 				resourceURL = resourceURL.JoinPath(r.URL.Path)
-				response := ProtectedResourceMetadata{Resource: resourceURL.String()}
-
-				if config.Authorization.ServerMetadataProxyEnabled {
-					response.AuthorizationServers = []string{config.Host.String()}
-				} else {
-					response.AuthorizationServers = []string{config.Authorization.Server}
+				response := ProtectedResourceMetadata{
+					Resource:             resourceURL.String(),
+					AuthorizationServers: []string{authServerURI},
 				}
 
 				log.Get(r.Context()).Info("Protected resource metadata", "response", response)

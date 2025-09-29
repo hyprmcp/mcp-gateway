@@ -135,18 +135,10 @@ func (t *mcpAwareTransport) NewHandler(req *http.Request) *handler {
 		UserAgent:    req.UserAgent(),
 	}
 
-	if rawToken := oauth.GetRawToken(req.Context()); rawToken != "" {
-		pl.AuthTokenDigest = digest.FromString(rawToken)
-	}
-
-	if token := oauth.GetToken(req.Context()); token != nil {
-		pl.Subject, _ = token.Subject()
-		var email string
-		if err := token.Get("email", &email); err != nil {
-			log.Get(req.Context()).Error(err, "could not get email claim from token")
-		} else {
-			pl.SubjectEmail = email
-		}
+	if userInfo := oauth.GetUserInfo(req.Context()); userInfo != nil {
+		pl.Subject = userInfo.Subject
+		pl.SubjectEmail = userInfo.Email
+		pl.AuthTokenDigest = digest.FromString(userInfo.Token)
 	}
 
 	return &handler{config: t.config, pl: pl}

@@ -5,38 +5,34 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"slices"
-	"strings"
 
 	"github.com/hyprmcp/mcp-gateway/config"
+	"github.com/hyprmcp/mcp-gateway/metadata"
+	"github.com/hyprmcp/mcp-gateway/oauth/authorization"
 )
 
 const AuthorizationPath = "/oauth/authorize"
 
-func NewAuthorizationHandler(config *config.Config, meta map[string]any) (http.Handler, error) {
-	supportedScopes := getSupportedScopes(meta)
-	var requiredScopes = slices.DeleteFunc(
-		[]string{"openid", "profile", "email"},
-		func(s string) bool { return !slices.Contains(supportedScopes, s) },
-	)
-
+func NewAuthorizationHandler(
+	config *config.Config,
+	meta metadata.Metadata,
+	fn authorization.EditQueryFunc,
+) (http.Handler, error) {
 	if authorizationEndpointStr, ok := meta["authorization_endpoint"].(string); !ok {
 		return nil, errors.New("authorization metadata is missing authorization_endpoint field")
 	} else if _, err := url.Parse(authorizationEndpointStr); err != nil {
 		return nil, fmt.Errorf("could not parse authorization endpoint: %w", err)
 	} else {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			redirectURI, _ := url.Parse(authorizationEndpointStr)
 			q := r.URL.Query()
-			scopes := q.Get("scope")
-			for _, scope := range requiredScopes {
-				if !strings.Contains(scopes, scope) {
-					scopes = strings.TrimSpace(scopes + " " + scope)
-				}
+			if err := fn(q); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
 			}
-			q.Set("scope", scopes)
-			redirectURI.RawQuery = q.Encode()
-			http.Redirect(w, r, redirectURI.String(), http.StatusFound)
+
+			upstreamAuthorizationURI, _ := url.Parse(authorizationEndpointStr)
+			upstreamAuthorizationURI.RawQuery = q.Encode()
+			http.Redirect(w, r, upstreamAuthorizationURI.String(), http.StatusFound)
 		}), nil
 	}
 }
