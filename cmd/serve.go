@@ -120,7 +120,7 @@ func newRouter(ctx context.Context, config *config.Config) (http.Handler, error)
 
 	for _, proxyConfig := range config.Proxy {
 		if proxyConfig.Http != nil && proxyConfig.Http.Url != nil {
-			handler := proxy.NewProxyHandler(&proxyConfig)
+			handler := proxy.NewProxyHandler(&proxyConfig, oauthManager.UpdateWWWAuthenticateHeader)
 			handler = htmlHandler.Handler(handler)
 
 			if proxyConfig.Authentication.Enabled {

@@ -84,6 +84,29 @@ func (mgr *Manager) Register(mux *http.ServeMux) error {
 	return nil
 }
 
+func (mgr *Manager) UpdateWWWAuthenticateHeader(resp *http.Response) error {
+	if resp.StatusCode == http.StatusUnauthorized {
+		value := resp.Header.Get("WWW-Authenticate")
+		if value != "" {
+			valueParts := strings.Split(value, " ")
+			for i, part := range valueParts {
+				if after, ok := strings.CutPrefix(part, "resource_metadata="); ok {
+					resourceMetadataOrig := strings.Trim(after, `"`)
+					if resourceMetadataOrig != "" {
+						realRequestURL := GetOriginalURL(resp.Request.Context())
+						upstreamMetadataURLs.Store(strings.Trim(realRequestURL.Path, `/`), resourceMetadataOrig)
+						valueParts[i] = fmt.Sprintf(`resource_metadata="%s"`, mgr.getMetadataURL(realRequestURL))
+						resp.Header.Set("WWW-Authenticate", strings.Join(valueParts, " "))
+						break
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func (mgr *Manager) Handler(next http.Handler) http.Handler {
 	htmlHandler := htmlresponse.NewHandler(mgr.config, true)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -99,13 +122,14 @@ func (mgr *Manager) Handler(next http.Handler) http.Handler {
 
 func (mgr *Manager) unauthorizedHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		metadataURL, _ := url.Parse(mgr.config.Host.String())
-		metadataURL.Path = ProtectedResourcePath
-		metadataURL = metadataURL.JoinPath(r.URL.Path)
-		w.Header().Set(
-			"WWW-Authenticate",
-			fmt.Sprintf(`Bearer resource_metadata="%s"`, metadataURL.String()),
-		)
+		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s"`, mgr.getMetadataURL(r.URL)))
 		w.WriteHeader(http.StatusUnauthorized)
 	}
+}
+
+func (mgr *Manager) getMetadataURL(u *url.URL) *url.URL {
+	metadataURL, _ := url.Parse(mgr.config.Host.String())
+	metadataURL.Path = ProtectedResourcePath
+	metadataURL = metadataURL.JoinPath(u.Path)
+	return metadataURL
 }
