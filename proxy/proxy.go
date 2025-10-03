@@ -6,38 +6,21 @@ import (
 	"net/url"
 
 	"github.com/hyprmcp/mcp-gateway/config"
+	"github.com/hyprmcp/mcp-gateway/oauth"
+	"github.com/hyprmcp/mcp-gateway/proxy/proxyutil"
 )
 
-func NewProxyHandler(config *config.Proxy) http.Handler {
+func NewProxyHandler(config *config.Proxy, modifyResponse func(*http.Response) error) http.Handler {
 	url := (*url.URL)(config.Http.Url)
 
 	return &httputil.ReverseProxy{
-		Rewrite: RewriteFullFunc(url),
+		Rewrite: proxyutil.RewriteChain(
+			proxyutil.RewriteFullFunc(url),
+			oauth.RewriteSetOriginalURL,
+		),
+		ModifyResponse: proxyutil.ModifyResponseChain(modifyResponse, proxyutil.RemoveCORSHeaders),
 		Transport: &mcpAwareTransport{
 			config: config,
 		},
-	}
-}
-
-func RewriteFullFunc(url *url.URL) func(r *httputil.ProxyRequest) {
-	return func(r *httputil.ProxyRequest) {
-		r.Out.URL.Scheme = url.Scheme
-		r.Out.URL.Host = url.Host
-		r.Out.URL.Path = url.Path
-		r.Out.URL.RawPath = url.RawPath
-		if r.Out.URL.RawQuery == "" || url.RawQuery == "" {
-			r.Out.URL.RawQuery = r.Out.URL.RawQuery + url.RawQuery
-		} else {
-			r.Out.URL.RawQuery = url.RawQuery + "&" + r.Out.URL.RawQuery
-		}
-		r.Out.Host = ""
-	}
-}
-
-func RewriteHostFunc(url *url.URL) func(r *httputil.ProxyRequest) {
-	return func(r *httputil.ProxyRequest) {
-		r.Out.URL.Scheme = url.Scheme
-		r.Out.URL.Host = url.Host
-		r.Out.Host = ""
 	}
 }
