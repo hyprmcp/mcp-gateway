@@ -3,6 +3,8 @@ package oauth
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -35,8 +37,14 @@ func NewProtectedResourceHandler(config *config.Config) http.Handler {
 				return
 			}
 
+			if strings.Trim(r.URL.Path, "/") == "" && len(config.Proxy) == 1 && !config.Proxy[0].Authentication.Enabled {
+				http.NotFound(w, r)
+				return
+			}
+
 			var response ProtectedResourceMetadata
 			if upstream, ok := upstreamMetadataURLs.Load(strings.Trim(r.URL.Path, `/`)); ok {
+				fmt.Println("loaded", upstream)
 				if upstreamStr, ok := upstream.(string); ok {
 					if req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, upstreamStr, nil); err != nil {
 						log.Get(r.Context()).Error(err, "failed to create request")
@@ -45,6 +53,16 @@ func NewProtectedResourceHandler(config *config.Config) http.Handler {
 					} else if resp, err := http.DefaultClient.Do(req); err != nil {
 						log.Get(r.Context()).Error(err, "failed to fetch metadata")
 						http.Error(w, "failed to fetch metadata", http.StatusBadGateway)
+						return
+					} else if resp.StatusCode != http.StatusOK {
+						log.Get(r.Context()).Error(errors.New("upstream returned non-200 status code"), "upstream returned non-200 status code")
+						for key, values := range resp.Header {
+							for _, val := range values {
+								w.Header().Set(key, val)
+							}
+						}
+						w.WriteHeader(resp.StatusCode)
+						io.Copy(w, resp.Body)
 						return
 					} else {
 						defer resp.Body.Close()

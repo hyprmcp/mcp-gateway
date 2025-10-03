@@ -17,6 +17,7 @@ import (
 	"github.com/hyprmcp/mcp-gateway/log"
 	"github.com/hyprmcp/mcp-gateway/oauth"
 	"github.com/hyprmcp/mcp-gateway/proxy"
+	"github.com/hyprmcp/mcp-gateway/proxy/proxyutil"
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +53,7 @@ func runServe(ctx context.Context, opts ServeOptions) error {
 			authUrl, err := url.Parse(cfg.Authorization.Server)
 			if err != nil {
 				done <- fmt.Errorf("auth proxy serve failed: %w", err)
-			} else if err := http.ListenAndServe(opts.AuthProxyAddr, &httputil.ReverseProxy{Rewrite: proxy.RewriteHostFunc(authUrl)}); !errors.Is(err, http.ErrServerClosed) {
+			} else if err := http.ListenAndServe(opts.AuthProxyAddr, &httputil.ReverseProxy{Rewrite: proxyutil.RewriteHostFunc(authUrl)}); !errors.Is(err, http.ErrServerClosed) {
 				done <- fmt.Errorf("auth proxy serve failed: %w", err)
 			} else {
 				done <- nil
