@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.6...v0.3.0) (2025-10-06)
+
+
+### Features
+
+* add proxying existing protected resource metadata ([#73](https://github.com/hyprmcp/mcp-gateway/issues/73)) ([5c12538](https://github.com/hyprmcp/mcp-gateway/commit/5c12538e0ae68e38ee0f1ff690720ca6a3526aae))
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/google/jsonschema-go to v0.3.0 ([#67](https://github.com/hyprmcp/mcp-gateway/issues/67)) ([45865b5](https://github.com/hyprmcp/mcp-gateway/commit/45865b55cae03ff89970a2fcb02e93b2542eb0c1))
+
+
+### Other
+
+* **deps:** update docker/login-action action to v3.6.0 ([#70](https://github.com/hyprmcp/mcp-gateway/issues/70)) ([e40be1f](https://github.com/hyprmcp/mcp-gateway/commit/e40be1fb41d71df25a742a8abe64974ba8f8a64a))
+* upgrade @hyprmcp/mcp-install-instructions-generator to 0.2.0 ([#68](https://github.com/hyprmcp/mcp-gateway/issues/68)) ([ab3e98f](https://github.com/hyprmcp/mcp-gateway/commit/ab3e98f7fcbb9e56be1db5ae707cb737632ae1de))
+
 ## [0.2.6](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.5...v0.2.6) (2025-09-15)
 
 
