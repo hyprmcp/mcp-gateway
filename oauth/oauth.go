@@ -99,13 +99,14 @@ func (mgr *Manager) Handler(next http.Handler) http.Handler {
 
 func (mgr *Manager) unauthorizedHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		metadataURL, _ := url.Parse(mgr.config.Host.String())
-		metadataURL.Path = ProtectedResourcePath
-		metadataURL = metadataURL.JoinPath(r.URL.Path)
-		w.Header().Set(
-			"WWW-Authenticate",
-			fmt.Sprintf(`Bearer resource_metadata="%s"`, metadataURL.String()),
-		)
+		w.Header().Set("WWW-Authenticate", fmt.Sprintf(`Bearer resource_metadata="%s"`, mgr.getMetadataURL(r.URL)))
 		w.WriteHeader(http.StatusUnauthorized)
 	}
+}
+
+func (mgr *Manager) getMetadataURL(u *url.URL) *url.URL {
+	metadataURL, _ := url.Parse(mgr.config.Host.String())
+	metadataURL.Path = ProtectedResourcePath
+	metadataURL = metadataURL.JoinPath(u.Path)
+	return metadataURL
 }
