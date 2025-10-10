@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/hyprmcp/mcp-gateway/compare/v0.3.0...v0.3.1) (2025-10-10)
+
+
+### Other
+
+* use hyprmcp dex for who-am-i demo ([#74](https://github.com/hyprmcp/mcp-gateway/issues/74)) ([7d29ed9](https://github.com/hyprmcp/mcp-gateway/commit/7d29ed9d46034e09665691fc5a34f219c88f469a))
+
 ## [0.3.0](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.6...v0.3.0) (2025-10-06)
 
 
