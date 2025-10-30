@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.1](https://github.com/hyprmcp/mcp-gateway/compare/v0.3.0...v0.3.1) (2025-10-29)
+
+
+### Other
+
+* **deps:** update github artifact actions (major) ([#82](https://github.com/hyprmcp/mcp-gateway/issues/82)) ([c1a8df0](https://github.com/hyprmcp/mcp-gateway/commit/c1a8df0dacbd9e23a4eb30c3e30b78f225f3e8fa))
+* **deps:** update googleapis/release-please-action action to v4.4.0 ([#81](https://github.com/hyprmcp/mcp-gateway/issues/81)) ([3db34e3](https://github.com/hyprmcp/mcp-gateway/commit/3db34e3944c15dc2dbd63cb60cd3a105185635ad))
+* **deps:** update sigstore/cosign-installer action to v4 ([#79](https://github.com/hyprmcp/mcp-gateway/issues/79)) ([1724f81](https://github.com/hyprmcp/mcp-gateway/commit/1724f813dcd39c9a7a3c9214a387228cf5b81b6d))
+* use hyprmcp dex for who-am-i demo ([#74](https://github.com/hyprmcp/mcp-gateway/issues/74)) ([7d29ed9](https://github.com/hyprmcp/mcp-gateway/commit/7d29ed9d46034e09665691fc5a34f219c88f469a))
+
 ## [0.3.0](https://github.com/hyprmcp/mcp-gateway/compare/v0.2.6...v0.3.0) (2025-10-06)
 
 
