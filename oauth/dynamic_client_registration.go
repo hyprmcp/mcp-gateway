@@ -11,6 +11,7 @@ import (
 	"github.com/hyprmcp/mcp-gateway/config"
 	"github.com/hyprmcp/mcp-gateway/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -27,9 +28,22 @@ type ClientInformation struct {
 }
 
 func NewDynamicClientRegistrationHandler(config *config.Config, meta map[string]any) (http.Handler, error) {
+	clientTLSConfig, err := config.DexGRPCClient.ClientTLSConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	var creds credentials.TransportCredentials
+
+	if clientTLSConfig != nil {
+		creds = credentials.NewTLS(clientTLSConfig)
+	} else {
+		creds = insecure.NewCredentials()
+	}
+
 	grpcClient, err := grpc.NewClient(
 		config.DexGRPCClient.Addr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithTransportCredentials(creds),
 	)
 	if err != nil {
 		return nil, err
