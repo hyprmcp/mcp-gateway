@@ -43,6 +43,8 @@ github.com/lestrrat-go/httpcc v1.0.1 h1:ydWCStUeJLkpYyjLDHihupbn2tYmZ7m22BGkcvZZ
 github.com/lestrrat-go/httpcc v1.0.1/go.mod h1:qiltp3Mt56+55GPVCbTdM9MlqhvzyuL6W/NMDA8vA5E=
 github.com/lestrrat-go/httprc/v3 v3.0.1 h1:3n7Es68YYGZb2Jf+k//llA4FTZMl3yCwIjFIk4ubevI=
 github.com/lestrrat-go/httprc/v3 v3.0.1/go.mod h1:2uAvmbXE4Xq8kAUjVrZOq1tZVYYYs5iP62Cmtru00xk=
+github.com/lestrrat-go/httprc/v3 v3.0.2 h1:7u4HUaD0NQbf2/n5+fyp+T10hNCsAnwKfqn4A4Baif0=
+github.com/lestrrat-go/httprc/v3 v3.0.2/go.mod h1:mSMtkZW92Z98M5YoNNztbRGxbXHql7tSitCvaxvo9l0=
 github.com/lestrrat-go/jwx/v3 v3.0.11 h1:yEeUGNUuNjcez/Voxvr7XPTYNraSQTENJgtVTfwvG/w=
 github.com/lestrrat-go/jwx/v3 v3.0.11/go.mod h1:XSOAh2SiXm0QgRe3DulLZLyt+wUuEdFo81zuKTLcvgQ=
 github.com/lestrrat-go/option v1.0.1 h1:oAzP2fvZGQKWkvHa1/SAcFolBEca1oN+mQ7eooNBEYU=
