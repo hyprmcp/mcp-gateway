@@ -12,7 +12,7 @@ require (
 	github.com/google/jsonschema-go v0.3.0
 	github.com/lestrrat-go/httprc/v3 v3.0.2
 	github.com/lestrrat-go/jwx/v3 v3.0.12
-	github.com/modelcontextprotocol/go-sdk v0.5.0
+	github.com/modelcontextprotocol/go-sdk v0.8.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/sourcegraph/jsonrpc2 v0.2.1
 	github.com/spf13/cobra v1.10.2
