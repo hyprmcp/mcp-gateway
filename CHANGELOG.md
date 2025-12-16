@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.0](https://github.com/hyprmcp/mcp-gateway/compare/v0.3.1...v0.4.0) (2025-12-16)
+
+
+### Features
+
+* add TLS support for gRPC connections to Dex ([#86](https://github.com/hyprmcp/mcp-gateway/issues/86)) ([b150636](https://github.com/hyprmcp/mcp-gateway/commit/b15063651a80cc95b934bb9e2f96e0747db2d63e))
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/lestrrat-go/httprc/v3 to v3.0.2 ([#88](https://github.com/hyprmcp/mcp-gateway/issues/88)) ([75c1c07](https://github.com/hyprmcp/mcp-gateway/commit/75c1c07c7e9305252b5aae7bdb1ed5984a0d62f2))
+* **deps:** update module github.com/lestrrat-go/jwx/v3 to v3.0.12 ([#80](https://github.com/hyprmcp/mcp-gateway/issues/80)) ([61c98ad](https://github.com/hyprmcp/mcp-gateway/commit/61c98adb6d7517211291e15fc58542b5caa9c285))
+* **deps:** update module github.com/spf13/cobra to v1.10.2 ([#87](https://github.com/hyprmcp/mcp-gateway/issues/87)) ([89f131c](https://github.com/hyprmcp/mcp-gateway/commit/89f131c32dc9c2b921c1891dc3fd9439cc285518))
+* **deps:** update module google.golang.org/grpc to v1.77.0 ([#75](https://github.com/hyprmcp/mcp-gateway/issues/75)) ([59ab1cf](https://github.com/hyprmcp/mcp-gateway/commit/59ab1cf2ecc831beafcbcb26cba9704e2ebfce3e))
+
+
+### Other
+
+* **deps:** update actions/checkout action to v6 ([#85](https://github.com/hyprmcp/mcp-gateway/issues/85)) ([440d185](https://github.com/hyprmcp/mcp-gateway/commit/440d1853c240d71e10822af4eddb517160834f73))
+* **deps:** update dependency go to v1.25.5 ([#76](https://github.com/hyprmcp/mcp-gateway/issues/76)) ([35db0ea](https://github.com/hyprmcp/mcp-gateway/commit/35db0ea25140a61d81e975d1d205630ca5032eac))
+* **deps:** update docker/metadata-action action to v5.10.0 ([#83](https://github.com/hyprmcp/mcp-gateway/issues/83)) ([8a5ce3a](https://github.com/hyprmcp/mcp-gateway/commit/8a5ce3aa0235c7c25b76a5bbebb7380f6b664024))
+* **deps:** update github artifact actions (major) ([#90](https://github.com/hyprmcp/mcp-gateway/issues/90)) ([d7c96bc](https://github.com/hyprmcp/mcp-gateway/commit/d7c96bc71ebb148778ec4cd097e1b5358b9faef7))
+
 ## [0.3.1](https://github.com/hyprmcp/mcp-gateway/compare/v0.3.0...v0.3.1) (2025-10-29)
 
 
