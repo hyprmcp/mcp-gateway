@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 
 	"github.com/hyprmcp/mcp-gateway/config"
 	"github.com/hyprmcp/mcp-gateway/log"
@@ -47,6 +48,9 @@ func NewAuthorizationServerMetadataHandler(config *config.Config) http.Handler {
 				log.Get(r.Context()).Info("Adding authorization endpoint to authorization server metadata",
 					"url", metadata["authorization_endpoint"])
 			}
+
+			// Rewrite all URL fields pointing to internal auth server to public host
+			rewriteMetadataURLs(metadata, config.Authorization.Server, config.Host.String())
 
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(metadata); err != nil {
@@ -91,6 +95,18 @@ func GetMedatata(server string) (map[string]any, error) {
 	}
 
 	return nil, err
+}
+
+// rewriteMetadataURLs rewrites all string values in metadata that start with
+// the internal auth server URL to use the public host URL instead.
+func rewriteMetadataURLs(metadata map[string]any, internalServer string, publicHost string) {
+	internal := strings.TrimRight(internalServer, "/")
+	public := strings.TrimRight(publicHost, "/")
+	for key, value := range metadata {
+		if s, ok := value.(string); ok && strings.HasPrefix(s, internal) {
+			metadata[key] = strings.Replace(s, internal, public, 1)
+		}
+	}
 }
 
 func getMetadataURIs(server string) ([]string, error) {

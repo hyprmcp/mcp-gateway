@@ -22,11 +22,15 @@ func NewAuthorizationHandler(config *config.Config, meta map[string]any) (http.H
 
 	if authorizationEndpointStr, ok := meta["authorization_endpoint"].(string); !ok {
 		return nil, errors.New("authorization metadata is missing authorization_endpoint field")
-	} else if _, err := url.Parse(authorizationEndpointStr); err != nil {
+	} else if authEndpointURL, err := url.Parse(authorizationEndpointStr); err != nil {
 		return nil, fmt.Errorf("could not parse authorization endpoint: %w", err)
 	} else {
+		// Rewrite the authorization endpoint to use the public host URL
+		publicURL, _ := url.Parse(config.Host.String())
+		publicURL.Path = authEndpointURL.Path
+
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			redirectURI, _ := url.Parse(authorizationEndpointStr)
+			redirectURI := *publicURL
 			q := r.URL.Query()
 			scopes := q.Get("scope")
 			for _, scope := range requiredScopes {
