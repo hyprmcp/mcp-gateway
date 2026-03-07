@@ -55,9 +55,21 @@ func NewManager(ctx context.Context, config *config.Config) (*Manager, error) {
 	// circular dependency when the auth server's issuer is set to the
 	// public gateway URL (the metadata would advertise the gateway's own
 	// URL as jwks_uri, causing the gateway to fetch from itself).
-	internalJWKSURI := strings.TrimRight(config.Authorization.Server, "/") + "/keys"
-	if u, err := url.Parse(jwksURIRaw); err == nil {
-		internalJWKSURI = strings.TrimRight(config.Authorization.Server, "/") + u.Path
+	baseURL, err := url.Parse(config.Authorization.Server)
+	if err != nil {
+		return nil, fmt.Errorf("invalid authorization server URL %q: %w", config.Authorization.Server, err)
+	}
+	jwksURL, err := url.Parse(jwksURIRaw)
+	if err != nil {
+		return nil, fmt.Errorf("invalid jwks_uri %q: %w", jwksURIRaw, err)
+	}
+	jwksPath := jwksURL.Path
+	if jwksPath == "" || jwksPath == "/" {
+		jwksPath = "/keys"
+	}
+	internalJWKSURI, err := url.JoinPath(baseURL.String(), jwksPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct internal JWKS URI: %w", err)
 	}
 
 	if err := cache.Register(timeoutCtx, internalJWKSURI,
@@ -176,7 +188,7 @@ func authServerProxyPaths(meta map[string]any) []string {
 
 	for _, key := range endpointKeys {
 		if s, ok := meta[key].(string); ok {
-			if u, err := url.Parse(s); err == nil {
+			if u, err := url.Parse(s); err == nil && strings.HasPrefix(u.Path, "/") {
 				add(u.Path)
 			}
 		}
@@ -186,7 +198,7 @@ func authServerProxyPaths(meta map[string]any) []string {
 	// prefix pattern so that connector-specific sub-paths (e.g.
 	// /auth/github) are also proxied.
 	if s, ok := meta["authorization_endpoint"].(string); ok {
-		if u, err := url.Parse(s); err == nil {
+		if u, err := url.Parse(s); err == nil && strings.HasPrefix(u.Path, "/") {
 			add(u.Path)
 			add(strings.TrimRight(u.Path, "/") + "/")
 		}

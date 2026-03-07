@@ -61,6 +61,15 @@ func TestAuthServerProxyPaths(t *testing.T) {
 			contains: []string{"/keys", "/callback", "/approval"},
 		},
 		{
+			name: "skips relative URIs that would panic ServeMux",
+			meta: map[string]any{
+				"token_endpoint": "token",        // relative, no leading /
+				"jwks_uri":       "https://example.com/keys",
+			},
+			contains: []string{"/keys", "/callback", "/approval"},
+			excludes: []string{"token"},
+		},
+		{
 			name: "registers authorization endpoint prefix for sub-paths",
 			meta: map[string]any{
 				"authorization_endpoint": "https://example.com/dex/auth",

@@ -26,7 +26,10 @@ func NewAuthorizationHandler(config *config.Config, meta map[string]any) (http.H
 		return nil, fmt.Errorf("could not parse authorization endpoint: %w", err)
 	} else {
 		// Rewrite the authorization endpoint to use the public host URL
-		publicURL, _ := url.Parse(config.Host.String())
+		publicURL, err := url.Parse(config.Host.String())
+		if err != nil {
+			return nil, fmt.Errorf("could not parse public host URL: %w", err)
+		}
 		publicURL.Path = authEndpointURL.Path
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -47,10 +47,12 @@ func NewAuthorizationServerMetadataHandler(config *config.Config) http.Handler {
 				metadata["authorization_endpoint"] = authorizationURI.String()
 				log.Get(r.Context()).Info("Adding authorization endpoint to authorization server metadata",
 					"url", metadata["authorization_endpoint"])
-			}
 
-			// Rewrite all URL fields pointing to internal auth server to public host
-			rewriteMetadataURLs(metadata, config.Authorization.Server, config.Host.String())
+				// Rewrite endpoint URL fields pointing to internal auth server
+				// to public host so external clients can reach them through the
+				// gateway's reverse proxy.
+				rewriteMetadataURLs(metadata, config.Authorization.Server, config.Host.String())
+			}
 
 			w.Header().Set("Content-Type", "application/json")
 			if err := json.NewEncoder(w).Encode(metadata); err != nil {
@@ -97,14 +99,48 @@ func GetMedatata(server string) (map[string]any, error) {
 	return nil, err
 }
 
-// rewriteMetadataURLs rewrites all string values in metadata that start with
-// the internal auth server URL to use the public host URL instead.
+// endpointURLFields lists the metadata fields that contain endpoint URLs
+// eligible for rewriting. Fields like "issuer" are intentionally excluded
+// because rewriting them would make the metadata inconsistent with the "iss"
+// claim in tokens issued by the auth server.
+var endpointURLFields = []string{
+	"authorization_endpoint",
+	"token_endpoint",
+	"jwks_uri",
+	"userinfo_endpoint",
+	"registration_endpoint",
+	"introspection_endpoint",
+	"revocation_endpoint",
+	"device_authorization_endpoint",
+	"end_session_endpoint",
+}
+
+// rewriteMetadataURLs rewrites known endpoint URL fields in metadata from the
+// internal auth server URL to the public host URL. Only fields whose
+// scheme and host match the internal server are rewritten.
 func rewriteMetadataURLs(metadata map[string]any, internalServer string, publicHost string) {
-	internal := strings.TrimRight(internalServer, "/")
-	public := strings.TrimRight(publicHost, "/")
-	for key, value := range metadata {
-		if s, ok := value.(string); ok && strings.HasPrefix(s, internal) {
-			metadata[key] = strings.Replace(s, internal, public, 1)
+	internalURL, err := url.Parse(strings.TrimRight(internalServer, "/"))
+	if err != nil || internalURL.Scheme == "" || internalURL.Host == "" {
+		return
+	}
+	publicURL, err := url.Parse(strings.TrimRight(publicHost, "/"))
+	if err != nil || publicURL.Scheme == "" || publicURL.Host == "" {
+		return
+	}
+
+	for _, key := range endpointURLFields {
+		s, ok := metadata[key].(string)
+		if !ok {
+			continue
+		}
+		u, err := url.Parse(s)
+		if err != nil || u.Scheme == "" || u.Host == "" {
+			continue
+		}
+		if u.Scheme == internalURL.Scheme && u.Host == internalURL.Host {
+			u.Scheme = publicURL.Scheme
+			u.Host = publicURL.Host
+			metadata[key] = u.String()
 		}
 	}
 }
